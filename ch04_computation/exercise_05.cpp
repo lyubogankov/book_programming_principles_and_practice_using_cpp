@@ -5,7 +5,7 @@ using namespace std;
 int main() {
 
     double operand1, operand2;
-    char calcoperator;
+    char calcoperator; // note: "operator" is a C++ keyword.
     string operation_result_name_and_preposition;
     double result;
 
