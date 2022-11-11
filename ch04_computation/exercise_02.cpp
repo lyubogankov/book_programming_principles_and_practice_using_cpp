@@ -1,3 +1,8 @@
+/*
+Write a program (based on ch4, example 6.3) that prints out the median of a sequence.
+Note that a median need not be an element of the sequence!
+*/
+
 #include<algorithm>
 #include<iostream>
 #include<vector>

@@ -1,3 +1,12 @@
+/*
+Exponential grains of rice on chessboard - doubles per square, starting with a single grain on first square.
+
+Write a program to calculate how manu squares are required to give the inventor at least:
+-         1_000 grains of rice
+-     1_000_000 grains of rice
+- 1_000_000_000 grains of rice
+*/
+
 #include<iostream>
 #include<cmath>
 using namespace std;

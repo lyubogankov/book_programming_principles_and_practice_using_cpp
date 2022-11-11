@@ -1,3 +1,9 @@
+/*
+Modify exercise 5 mini-calculator to only accept single-digit numbers,
+either as digits or spelled out (similar to exercise 06).
+*/
+
+
 // Modifying mini-calculator from ex5 with code from ex6
 // It'll only accept single-digit numbers that are either given as digits or spelled out.
 // Note - this won't handle negative numbers, only digits [0, 9].

@@ -1,3 +1,9 @@
+/*
+Make a vector holding ten string values "zero", "one", ..., "nine".
+Use it in a program that converts a digit to its corresponding spelled-out value (input 7 -> output "seven").
+Additionally, program must also accept spelled-out digits and output digit       (input "seven" -> output 7).
+*/
+
 #include<iostream>
 #include<string>
 #include<vector>

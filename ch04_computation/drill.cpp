@@ -1,3 +1,35 @@
+/*
+ 1. Write a program that consists of a while-loop that repeatedly obtains two ints from user and prints them.
+    Exit the program when a terminating '|' is entered.
+
+ 2. Change the program to print out the max/min of the pair of ints during each iteration.
+
+ 3. Change the program to notify user when pair of ints are equal.
+
+ 4. Change the program to use doubles instead of ints.
+
+ 5. Change the program to notify user when the numbers differ by less than 1/100 ("the numbers are almost equal").
+
+ 6. Change the program to read a single double during each loop.  Keep track of the max/min value seen.
+    Every iteration - print value entered, and notify user if the number is a current min/max.
+
+ 7. Add a unit to each double entered (values such as 10cm, 2.5in, 5ft, 3.33m, etc.)
+    Accept the four units "cm", "m", "in", "ft".  Read the unit indicator into a string.
+    Note: consider "12 m" == "12m" (space should not matter).
+
+ 8. Reject values without units, or illegal units (not in list of 4 units from #7).
+
+ 9. Keep running sum of values entered (as well as largest/smallest value entered), as well as
+    number of values entered.  After loop ends, print min/max/count/sum.
+    Note: will need to convert between units for comparison!
+
+10. Keep all values entered (standardize - convert everything to meters) in a vector.
+    At the end, write out all the values entered.
+
+11. Before writing out the values from the vector, sort them so they come out in increasing order.
+
+*/
+
 #include<algorithm>
 #include<iostream>
 #include<limits>
@@ -75,7 +107,7 @@ int main() {
     cout << "---\n"
          << "All vector values:\n";
 
-    // 11. Sorting the vector.     
+    // 11. Sorting the vector.
     sort(lengths_in_m.begin(), lengths_in_m.end()); // in-place ascending sort between indices[i, j)
 
     for (double length_in_m : lengths_in_m){

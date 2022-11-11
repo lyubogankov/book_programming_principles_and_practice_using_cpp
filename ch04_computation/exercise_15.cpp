@@ -1,3 +1,7 @@
+/*
+Find the first "n" primes, where "n" is an integer > 1 specified by user.
+*/
+
 #include<iostream>
 #include<limits>
 #include<vector>

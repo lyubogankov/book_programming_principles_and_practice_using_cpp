@@ -1,3 +1,10 @@
+/*
+Read sequence of double values into a vector.  Think of each value as the distance between two cities along a specific route.
+Compute and print the sum of all distances.
+Find and print the min/max distances.
+Find and print the mean distance.
+*/
+
 #include<iostream>
 #include<limits>
 #include<vector>

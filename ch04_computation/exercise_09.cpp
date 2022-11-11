@@ -1,3 +1,16 @@
+/*
+Exponential grains of rice on chessboard - doubles per square, starting with a single grain on first square.
+
+Try to calculate the number of grains the inventor asked for, total (64 squares on chess board.)
+You'll find the number is so large it won't fit into an int, or a double.
+
+Observe what happens when the number gets too large to represent exactly as an int and as a double.
+
+What is the larget number of squares for which you can calculate the exact number of grains using...
+- an int?
+- a double?
+*/
+
 #include<iostream>
 #include<cmath>
 using namespace std;

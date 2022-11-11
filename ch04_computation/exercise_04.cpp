@@ -1,3 +1,9 @@
+/*
+Write a program to play a numbers guessing game.  User picks number [0, 100].
+Program asks user questions to determine number ("Is your number greater/smaller than n?") and obtains feedback from user.
+Program should be able to identify number after asking no more than 7 questions.
+*/
+
 #include<iostream>
 #include<vector>
 using namespace std;

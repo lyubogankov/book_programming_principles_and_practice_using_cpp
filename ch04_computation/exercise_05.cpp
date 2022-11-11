@@ -1,3 +1,9 @@
+/*
+Very simple calculator - addition, subtracion, multiplication, division on two input values.
+Inputs "{double operand 1} {double operand 2} {character operation}"
+Outputs the answer as part of a sentence ("The {operation, spelled out} of {operand 1} and {operand 2} is {result}").
+*/
+
 #include<iostream>
 #include<string>
 using namespace std;
