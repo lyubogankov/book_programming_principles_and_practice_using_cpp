@@ -18,7 +18,11 @@ using namespace std;
 int main() {
 
 
-    // INTEGERS: highest square for which we can represent is 30, value = 1_073_741_824
+    // INTEGERS: highest square for which we can represent is square 31 (30 if it's 0-indexed).
+    // Value = 1_073_741_824 and cumulative grains of rice = 2_147_483_647
+    //     On my computer (64-bit os), largest signed int is 2_147_483_647 = (2^(4 bytes))/2 - 1
+    //                                                                     = (2^(32 bits))/2 - 1
+    //                                                                     =  2^31 - 1
     cout << "--------------------------------\n"
          << "Integers:\n";
     int int_total_grains_of_rice = 0;
@@ -35,7 +39,9 @@ int main() {
     //                                                                              The test below doesn't work, either, both are stuck at _616.
     cout << "--------------------------------\n"
          << "Doubles:\n"
-         << fixed;
+         << fixed;     // this makes the doubles show up as actual numbers, not in scientific notation
+    cout.precision(0); // this makes the doubles have no decimal numbers (0 digits of precision).
+
     double dbl_total_grains_of_rice = 0;
     double dbl_current_square_grains_of_rice = 0;
     for(int square=0; square<64; ++square){
@@ -44,6 +50,10 @@ int main() {
         cout << "\t[sq " << square << "] " << dbl_current_square_grains_of_rice << "  |  " << dbl_total_grains_of_rice << "\n";
     }
 
+    // ind  9_223_372_036_854_775_808
+    // sum 18_446_744_073_709_551_616
+
+    // Hmm - the result of the two computations below is the same... that doesn't sound right?
     double test = pow(2, 64);
     double testminus1 = pow(2, 64) - 1;
     cout << "2^64 - 1 = " << testminus1 << "\n";
