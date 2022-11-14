@@ -3,6 +3,12 @@
 #include <limits>
 using namespace std;
 
+/*
+https://en.cppreference.com/w/cpp/language/types
+https://en.wikipedia.org/wiki/IEEE_754-2008_revision
+https://en.wikipedia.org/wiki/Double-precision_floating-point_format
+*/
+
 int main() {
 
     cout << std::fixed;
