@@ -40,5 +40,5 @@ int main() {
 
     print_quadratic_roots(a, b, c);
 
-    return 0;   
+    return 0;
 }
