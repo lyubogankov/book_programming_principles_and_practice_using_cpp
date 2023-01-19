@@ -1,5 +1,5 @@
 /*
-Find all prine numbers 1->100 (ex13) and 1->user_input_max (ex14) using the "Sieve of Eratosthenes".
+Find all prime numbers 1->100 (ex13) and 1->user_input_max (ex14) using the "Sieve of Eratosthenes".
 */
 
 #include<iostream>
