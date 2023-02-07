@@ -17,7 +17,27 @@
 
 */
 
+/*
+    Drill exercises from book
+
+    1. Find the 5 syntax and 3 logic bugs -- annotated in code.
+
+    2. Change exit-command character from `q` to `x`
+         Defined constexpr for EXIT_CHAR since it's used in two places.
+         This way I avoid changing both every time!
+
+    3. Change print-command character from `;` to `=`
+         Same strategy as 2!  Defined a constexpr.
+
+    4. Add a greeting line in main()
+    5. Improve greeting - mention available operators, print/exit commands
+*/
+
 #include "../std_lib_facilities.h"
+
+// Constants
+constexpr char EXIT_CHAR = 'x';
+constexpr char PRINT_CHAR = '=';
 
 //------------------------------------------------------------------------------
 
@@ -77,8 +97,8 @@ Token Token_stream::get()
     cin >> ch;    // note that >> skips whitespace (space, newline, tab, etc.)
 
     switch (ch) {
-    case ';':    // for "print"
-    case 'q':    // for "quit"
+    case PRINT_CHAR:  // for "print"
+    case EXIT_CHAR:   // for "quit"
     case '(': case ')': case '+': case '-': case '*': case '/':
         return Token(ch);        // let each character represent itself
     case '.':
@@ -186,17 +206,28 @@ double expression()
 int main()
 try
 {
+    cout << "Welcome to our simple calculator.\n"
+         << "Please enter expressions using floating point numbers.\n"
+         << "Valid operators:\n"
+         << "     +  (addition)\n"
+         << "     -  (subtraction)\n"
+         << "     *  (multiplication)\n"
+         << "     /  (division)\n"
+         << "    ( ) (parentheses) \n"
+         << "To evaluate expression, type '" << PRINT_CHAR << "'\n"
+         << "To exit calculator, type '" << EXIT_CHAR << "'\n\n";
+
     // ERROR 5/5 -- missing declaration of "val"
     double val = 0;
     while (cin) {
         Token t = ts.get();
 
-        if (t.kind == 'q') break; // 'q' for quit
-        if (t.kind == ';')        // ';' for "print now"
+        if (t.kind == EXIT_CHAR) break;  // quit
+        if (t.kind == PRINT_CHAR)        // print
             cout << "=" << val << '\n';
         else {
             ts.putback(t);
-            // LOGIC ERROR 2 -- this needs to be within the else block for "q" command to work!
+            // LOGIC ERROR 2 -- this needs to be within the else block for exit command to work!
             val = expression();
         }
     }
