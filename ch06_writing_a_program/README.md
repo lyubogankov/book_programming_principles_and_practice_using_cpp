@@ -36,9 +36,9 @@
     ```
 
 
-3. *How do you break a problem up into smaller manageable parts?*
+3. *How do you break a problem up into smaller manageable parts?*  TODO
 
-    uhh
+
 
 
 4. *Why is creating a small, limited version of a program a good idea?*
@@ -51,20 +51,20 @@
     According to the book, adding one extra feature opens the floodgates for more features to get added, bogging down the development process.  Better to implement one thing at a time.
 
 
-6. *What are the three main phases of software development?*
+6. *What are the three main phases of software development?*  TODO
 
     1. meme
     2. meme
     3. meme
 
 
-7. *What is a “use case”?*
+7. *What is a “use case”?*  TODO
 
 
-8. *What is the purpose of testing?*
+8. *What is the purpose of testing?*  TODO
 
 
-9. *According to the outline in the chapter, describe the difference between a `Term`, an `Expression`, a `Number`, and a `Primary`.
+9. *According to the outline in the chapter, describe the difference between a `Term`, an `Expression`, a `Number`, and a `Primary`.*
 
     **`Number`**: a decimal number stored, expressed in a format compatible with the C++ floating-point data type.  This isn't yet factored into the mathematical order of operations.
 
@@ -77,7 +77,7 @@
     **`Expression`**: the lowest priority within OoO.  For our calculator, that's addition and subtraction of `Terms`, the next-highest priority grammar element.
 
 
-10. *In the chapter, an input was broken down into its component `Terms`, `Expressions`, `Primarys`, and `Numbers`. Do this for (17+4)/(5–1).
+10. *In the chapter, an input was broken down into its component `Terms`, `Expressions`, `Primarys`, and `Numbers`. Do this for (17+4)/(5–1).*
 
     ```mermaid
 
@@ -212,25 +212,48 @@
         t4 --- p5
 
     ```
+    *This diagram was actually quite tricky to generate.  I ended up using subgraphs to force element grouping per [this mermaid-js github issue comment](https://github.com/mermaid-js/mermaid/issues/815#issuecomment-652844554).*
 
-    https://github.com/mermaid-js/mermaid/issues/815#issuecomment-652844554 < use this method
-
-    Almost there, but the order of the big primary blocks is flipped
 
 
 11. *Why does the program not have a function called `number()`?*
 
-
-12. *What is a token?*
-
-
-13. *What is a grammar? A grammar rule?*
+    The program does not have a `number()` function because this is implemented within `Token_stream::get()` - when a numerical digit or `.` is detected in the incoming character stream, `iostream::cin` is used to parse the characters into a C++ `double` (in other words, a `Number`).
 
 
-14. *What is a class?* What do we use classes for?*
+12. *What is a token?*  TODO -- look at wikipedia
+
+    A token is a kind, value pair.  In our calculator, tokens were a user-defined type (a class) - `Token`.
+
+
+13. *What is a grammar? A grammar rule?*  TODO
+
+    
+
+
+14. *What is a class? What do we use classes for?*  TODO
+
+    A class is a user-defined type (similar to C++ built-ins like `double`, `string`, etc).  It can have member variables and functions.  Classes are used to abstract concepts?
 
 
 15. *How can we provide a default value for a member of a class?*
+
+    Within its constructor!  A class can have multiple constructors, depending on how many/which member variables are exposed as arguments into the constructor (each must have a different signature).  Examples from drill:
+    
+    Initializing a `Token`: two options!
+    ```C++
+    Token(char ch)                  // just specifying via argument, value has default of 0
+        :kind(ch), value(0) { }
+    Token(char ch, double val)
+        :kind(ch), value(val) { }   // specifying both kind/value via arg, no defaults
+    ```
+
+    Initializing a `Token_stream`
+    - setting `full` to `false`
+    ```C++
+    Token_stream::Token_stream()
+    :full(false), buffer(0) { }
+    ```
 
 
 16. *In the expression function, why is the default for the switch-statement to “put back” the token?*
