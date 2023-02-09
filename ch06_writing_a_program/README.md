@@ -1,5 +1,9 @@
 ## Notes
 
+![](media/cpp-ch06-dark%20(1).jpg)
+![](media/cpp-ch06-dark%20(2).jpg)
+![](media/cpp-ch06-dark%20(3).jpg)
+
 ## Chapter Review Questions
 
 1. *What do we mean by “Programming is understanding”?*
