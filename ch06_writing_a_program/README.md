@@ -81,7 +81,7 @@
 
     ```mermaid
 
-    graph GrammarTree
+    graph TD
 
         e0["Expression"]
         e1["Expression"]
