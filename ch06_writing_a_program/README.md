@@ -36,9 +36,9 @@
     ```
 
 
-3. *How do you break a problem up into smaller manageable parts?*  TODO
+3. *How do you break a problem up into smaller manageable parts?*
 
-
+    - Identify elements that come up repeatedly (either operations, or types of information that appear together often).  These are good candidates for functions / classes.  These are used as higher-order building blocks (instead of just language primitives), and can be used as "pieces" of the software (akin to parts of a car).
 
 
 4. *Why is creating a small, limited version of a program a good idea?*
@@ -51,17 +51,23 @@
     According to the book, adding one extra feature opens the floodgates for more features to get added, bogging down the development process.  Better to implement one thing at a time.
 
 
-6. *What are the three main phases of software development?*  TODO
+6. *What are the three main phases of software development?*
 
-    1. meme
-    2. meme
-    3. meme
+    1. Analysis - develop requirements/specification
+    2. Design - map specs onto high-level program structure, research libraries (if needed)
+    3. Implementation
+
+    This probably works well for smaller programs, but for larger ones it's probably an iterative process (with each slice consisting of these three phases).
 
 
-7. *What is a “use case”?*  TODO
+7. *What is a “use case”?*
+
+    An example of a program feature + how user is expected to interact with it.
 
 
-8. *What is the purpose of testing?*  TODO
+8. *What is the purpose of testing?*
+
+    To ensure that the program works as expected in all use cases and gracefully errors out outside of them.
 
 
 9. *According to the outline in the chapter, describe the difference between a `Term`, an `Expression`, a `Number`, and a `Primary`.*
@@ -221,19 +227,19 @@
     The program does not have a `number()` function because this is implemented within `Token_stream::get()` - when a numerical digit or `.` is detected in the incoming character stream, `iostream::cin` is used to parse the characters into a C++ `double` (in other words, a `Number`).
 
 
-12. *What is a token?*  TODO -- look at wikipedia
+12. *What is a token?*
 
-    A token is a kind, value pair.  In our calculator, tokens were a user-defined type (a class) - `Token`.
-
-
-13. *What is a grammar? A grammar rule?*  TODO
-
-    
+    A token is a kind, value pair representing a "unit" of something in our program.  In our calculator, tokens were a user-defined type (a class) - `Token`.  According to Wikipedia, this is a [*lexical token*](https://en.wikipedia.org/wiki/Lexical_analysis#Token).
 
 
-14. *What is a class? What do we use classes for?*  TODO
+13. *What is a grammar? A grammar rule?*
 
-    A class is a user-defined type (similar to C++ built-ins like `double`, `string`, etc).  It can have member variables and functions.  Classes are used to abstract concepts?
+    A grammar is a set of rules that define how a sequence of characters breaks down into subsequences, eventually down to the token level.  In our case, we use it to implement an order of operations for the calculator.
+
+
+14. *What is a class? What do we use classes for?*
+
+    A class is a user-defined type (similar to C++ built-ins like `double`, `string`, etc).  It can have member variables and functions.  Classes are used to abstract concepts (should be used to make things simpler, not more complicated).
 
 
 15. *How can we provide a default value for a member of a class?*
@@ -248,45 +254,75 @@
         :kind(ch), value(val) { }   // specifying both kind/value via arg, no defaults
     ```
 
-    Initializing a `Token_stream`
-    - setting `full` to `false`
+    Initializing a `Token_stream` (setting `full` to `false` as default)
     ```C++
     Token_stream::Token_stream()
-    :full(false), buffer(0) { }
+        :full(false), buffer(0) { }
     ```
 
 
-16. *In the expression function, why is the default for the switch-statement to “put back” the token?*
+16. *In `expression()`, why is the default for the switch-statement to “put back” the token?*
+
+    If the token obtained from the stream / user input is not a `+` or `-`, then it does not match the grammar rules defining an expression.  The token is put back into the front of the stream (into the buffer) so that another function can process it (either as valid input, if it meets another grammar rule, or as invalid input).  Finally `expression()` returns the left `Term`, which is itself a valid `Expression` per grammar rules.
 
 
 17. *What is “look-ahead”?*
 
+    We can't directly evaluate expressions as the user enters them, char-by-char, because that could violate order of operations.  Ex: 2+2*3.  Therefore, before evaluating 2+2, we first need to be able to "look ahead" (see past this portion) to ensure there isn't a higher-priority operator (like * over +).  If there is, do that first.
+
 
 18. *What does `putback()` do and why is it useful?*
+
+    It "prepends" tokens to the front of the input stream.  This is implemented using a buffer - for our calculator, the buffer only stores one element, but could be implemented using an array as well.
+
+    It is useful because if a given function cannot process a token (doesn't match its grammar rules), it can delegate the processing to another function by putting the token back into the stream.  That other function can decide whether the token is valid or invalid based on its  rules.  I'd imagine this only works in a cohesive system of grammar rules.
 
 
 19. *Why is the remainder (modulus) operation, %, difficult to implement in the term()?*
 
+    The modulus operator is only defined for integers, but calculator is written for floating point numbers (superset of integers).  Could result in undefined behavior.
+
 
 20. *What do we use the two data members of the `Token` class for?*
+
+    - `kind` is used to signify what type of token we are processing.
+        - `Numbers` are represented with `kind=8` (chosen arbitrarily).
+        - All other symbols (mathematical operators, print character, exit character) are their own `kind`.
+    - `value` differentiates `Tokens` of the same kind for each other - only relevant for `Numbers`.  The value is the `double` read from the user and used for calculations.
 
 
 21. *Why do we (sometimes) split a class’s members into private and public members?*
 
+    Private = user does not have access to variables/functions, so they cannot mess with internal state of class.
+
+    Public = interface between user/class - ideally, as simple as possible to get full benefits of abstraction.
+
 
 22. *What happens in the `Token_stream` class when there is a token in the buffer and the `get() function` is called?*
+
+    We don't read input from the user - instead, we return the buffered `Token` and reset `ts.full` to `false`.
 
 
 23. *Why were the `;` and `q` characters added to the switch-statement in the get() function of the Token_stream class?*
 
+    `Token_stream::get()` processes all user input.  They were added so that the `main()` function could also access the stream and check for print/exit.  Since they are not part of the grammar, as long as they occur between valid expressions they'll be put into buffer until `main()`.
+
 
 24. *When should we start testing our program?*
 
+    Right away, ideally (that's the point of test-driven-development).  Individual blocks of functionality (aka functions) can be tested independently using unit tests.
 
-25. *What is a “user-defined type”?* Why would we want one?*
+
+25. *What is a “user-defined type”? Why would we want one?*
+
+    A class -- see #14.
 
 
 26. *What is the interface to a C++ “user-defined type”?*
 
+    Its public member functions and variables.
+
 
 27. *Why do we want to rely on libraries of code?*
+
+    They have pre-built functionality, no need for us to re-invent wheel (unless as an academic/learning exercise).
