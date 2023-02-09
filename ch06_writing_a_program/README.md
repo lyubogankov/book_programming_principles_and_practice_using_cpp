@@ -81,138 +81,141 @@
 
     ```mermaid
 
-    graph TD
+    graph GrammarTree
 
-    e0["Expression"]
-    e1["Expression"]
-    e2["Expression"]
-    e3["Expression"]
-    e4["Expression"]
+        e0["Expression"]
+        e1["Expression"]
+        e2["Expression"]
+        e3["Expression"]
+        e4["Expression"]
 
-    t0["Term"]
-    t1["Term"]
-    t2["Term"]
-    t3["Term"]
-    t4["Term"]
+        t0["Term"]
+        t1["Term"]
+        t2["Term"]
+        t3["Term"]
+        t4["Term"]
 
-    p0["Primary"]
-    p1["Primary"]
-    p2["Primary"]
-    p3["Primary"]
-    p4["Primary"]
-    p5["Primary"]
+        p0["Primary"]
+        p1["Primary"]
+        p2["Primary"]
+        p3["Primary"]
+        p4["Primary"]
+        p5["Primary"]
 
-    n0["Number"]
-    n1["Number"]
-    n2["Number"]
-    n3["Number"]
-  
-    tok0["("]
-    tok1["17"]
-    tok2["+"]
-    tok3["4"]
-    tok4[")"]
-    tok5["/"]
-    tok6["("]
-    tok7["5"]
-    tok8["-"]
-    tok9["1"]
-    tok10[")"]
+        n0["Number"]
+        n1["Number"]
+        n2["Number"]
+        n3["Number"]
+    
+        tok0["("]
+        tok1["17"]
+        tok2["+"]
+        tok3["4"]
+        tok4[")"]
+        tok5["/"]
+        tok6["("]
+        tok7["5"]
+        tok8["-"]
+        tok9["1"]
+        tok10[")"]
 
-    %% top level
-    e4 --- t4
+        %% top level
+        e4 --- t4
 
-    %% second level
-    t4 --- p2
-    t4 --- tok5
-    t4 --- p5
+        %% second level
+        t4 --- p2
+        t4 --- tok5
 
-    %% (17 + 4) -> primary
-    subgraph gp1[" "]
+        %% (5 - 1) -> primary
+        subgraph gp2[" "]
 
-        %% direction TB
-        p2 --- tok0
-        p2 --- e1
+            %% direction TB
+            p5 --- tok6
+            p5 --- e3
 
-        %% 17 + 4 -> expression
-        subgraph ge1[" "]
-            %% 17 -> expression
-            subgraph gt1_4[" "]
-                subgraph gt1_3[" "]
-                    subgraph gt1_2[" "]
-                        subgraph gt1_1[" "]
-                            n0 --- tok1
+            %% 5 - 1 -> expression
+            subgraph ge2[" "]
+                %% 5 -> expression
+                subgraph gt3_4[" "]
+                    subgraph gt3_3[" "]
+                        subgraph gt3_2[" "]
+                            subgraph gt3_1[" "]
+                                n2 --- tok7
+                            end
+                            p3 --- n2
                         end
-                        p0 --- n0
+                        t2 --- p3
                     end
-                    t0 --- p0
+                    e2 --- t2
                 end
-                e0 --- t0
-            end
-            e1 --- e0
+                e3 --- e2
 
-            e1 --- tok2
-            %% 4 -> term
-            subgraph gt2_3[" "]
-                subgraph gt2_2[" "]
-                    subgraph gt2_1[" "]
-                        n1 --- tok3
+                e3 --- tok8
+
+                %% 1 -> term
+                subgraph gt4_3[" "]
+                    subgraph gt4_2[" "]
+                        subgraph gt4_1[" "]
+                            n3 --- tok9
+                        end
+                        p4 --- n3
                     end
-                    p1 --- n1
+                    t3 --- p4
                 end
-                t1 --- p1
+                e3 --- t3
             end
-            e1 --- t1
+
+            p5 --- tok10
         end
 
-        p2 --- tok4
-    end
+        %% (17 + 4) -> primary
+        subgraph gp1[" "]
 
-    %% (5 - 1) -> primary
-    subgraph gp2[" "]
+            %% direction TB
+            p2 --- tok0
+            p2 --- e1
 
-        %% direction TB
-        p5 --- tok6
-        p5 --- e3
-
-        %% 5 - 1 -> expression
-        subgraph ge2[" "]
-            %% 5 -> expression
-            subgraph gt3_4[" "]
-                subgraph gt3_3[" "]
-                    subgraph gt3_2[" "]
-                        subgraph gt3_1[" "]
-                            n2 --- tok7
+            %% 17 + 4 -> expression
+            subgraph ge1[" "]
+                %% 17 -> expression
+                subgraph gt1_4[" "]
+                    subgraph gt1_3[" "]
+                        subgraph gt1_2[" "]
+                            subgraph gt1_1[" "]
+                                n0 --- tok1
+                            end
+                            p0 --- n0
                         end
-                        p3 --- n2
+                        t0 --- p0
                     end
-                    t2 --- p3
+                    e0 --- t0
                 end
-                e2 --- t2
-            end
-            e3 --- e2
+                e1 --- e0
 
-            e3 --- tok8
-
-            %% 1 -> term
-            subgraph gt4_3[" "]
-                subgraph gt4_2[" "]
-                    subgraph gt4_1[" "]
-                        n3 --- tok9
+                e1 --- tok2
+                %% 4 -> term
+                subgraph gt2_3[" "]
+                    subgraph gt2_2[" "]
+                        subgraph gt2_1[" "]
+                            n1 --- tok3
+                        end
+                        p1 --- n1
                     end
-                    p4 --- n3
+                    t1 --- p1
                 end
-                t3 --- p4
+                e1 --- t1
             end
-            e3 --- t3
+
+            p2 --- tok4
         end
 
-        p5 --- tok10
-    end
+        t4 --- p5
 
     ```
 
     https://github.com/mermaid-js/mermaid/issues/815#issuecomment-652844554 < use this method
+
+    Almost there, but the order of the big primary blocks is flipped
 
 
 11. *Why does the program not have a function called `number()`?*
