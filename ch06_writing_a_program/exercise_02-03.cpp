@@ -15,6 +15,14 @@
    To agree with the standard mathematical definition of factorial, let 0! evaluate to 1.
    Hint: The calculator functions deal with doubles, but factorial is defined only for ints, 
    so just for x!, assign the x to an int and calculate the factorial of that int.
+
+
+   Done!  Added another layer into the grammar rules -- "factorial", between Primary and Term.
+   A Factorial can either be a Primary, or a Primary+'!'.
+   I also added '!' to Token_stream::get() so that '!' would not be thrown out as a bad token.
+
+   During testing, I found another logic bug -- I missed it during the drill.
+   The number '8' was missing from the calculator... I suppose that means I never tested that number :(
 */
 
 #include "../std_lib_facilities.h"
@@ -82,15 +90,15 @@ Token Token_stream::get()
     case PRINT_CHAR:  // for "print"
     case EXIT_CHAR:   // for "quit"
     case '(': case ')': case '{': case '}':
-    case '+': case '-': case '*': case '/':
+    case '+': case '-': case '*': case '/': case '!':
         return Token(ch);        // let each character represent itself
     case '.':
     case '0': case '1': case '2': case '3': case '4':
-    case '5': case '6': case '7': case '9':
+    case '5': case '6': case '7': case '8': case '9':
     {
-        cin.putback(ch);         // put digit back into the input stream
+        cin.putback(ch);           // put digit back into the input stream
         double val;
-        cin >> val;              // read a floating-point number
+        cin >> val;                   // read a floating-point number
         return Token('8', val);   // let '8' represent "a number"
     }
     default:
@@ -111,8 +119,6 @@ double expression();    // declaration so that primary() can call expression()
 // deal with numbers and parentheses
 double primary()
 {
-    
-
     Token t = ts.get();
     switch (t.kind) {
     case '(': case '{':    // handle ( expr ) and { expr }
@@ -132,10 +138,34 @@ double primary()
 
 //------------------------------------------------------------------------------
 
+double factorial()
+{
+    double left = primary();
+    Token t = ts.get(); // get the next token from token stream
+
+    switch(t.kind) {
+    case '!':
+    {
+        // 0! = 1
+        if (left == 0)
+            return 1;
+        int fact = 1;
+        for (int i = 1; i <= left; i++)
+            fact *= i;
+        return fact;
+    }
+    default:
+        ts.putback(t);
+        return left;
+    }
+}
+
+//------------------------------------------------------------------------------
+
 // deal with *, /, and %
 double term()
 {
-    double left = primary();
+    double left = factorial();
     Token t = ts.get();        // get the next token from token stream
 
     while (true) {
@@ -146,7 +176,7 @@ double term()
             break;
         case '/':
         {
-            double d = primary();
+            double d = factorial();
             if (d == 0) error("divide by zero");
             left /= d;
             t = ts.get();
@@ -196,7 +226,9 @@ try
          << "     -  (subtraction)\n"
          << "     *  (multiplication)\n"
          << "     /  (division)\n"
-         << "    ( ) (parentheses) \n"
+         << "     !  (factorial)\n"
+         << "    ( ) (parentheses, for grouping)\n"
+         << "    { } (curly braces, also work as parentheses for grouping\n"
          << "To evaluate expression, type '" << PRINT_CHAR << "'\n"
          << "To exit calculator, type '" << EXIT_CHAR << "'\n\n";
 
