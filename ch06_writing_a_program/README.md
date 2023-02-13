@@ -2,7 +2,7 @@
 
 ![](media/cpp-ch06-dark%20(1).jpg)
 ![](media/cpp-ch06-dark%20(2).jpg)
-![](media/cpp-ch06-dark%20(3).jpg)ddd
+![](media/cpp-ch06-dark%20(3).jpg)
 
 ## Open Questions about Matierial Covered
 
@@ -53,6 +53,11 @@
     ```
 
     **Is there a discrepancy between the grammar presented and the implementation?**
+
+    Further thoughts: In the `expression()` vs `Expression` example above, if `expression()` called itself instead of `term()` for `left`, we'd get stuck in an infinite loop.
+
+    Perhaps the difference between the grammar presented and the implementation is that our calculator code evaluates tokens as they are obtained from the user?  We don't store the tokens for the expression in a syntax tree for later parsing once the expression has been wholly entered.
+
 
 ## Chapter Review Questions
 
