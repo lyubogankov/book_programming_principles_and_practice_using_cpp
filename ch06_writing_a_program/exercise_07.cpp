@@ -11,13 +11,15 @@
     The & operator binds tighter than ^ so that x^y&z means x^(y&z).
 
 */
-#include <algorithm>
+// #include <algorithm>  // for min()
+#include <functional>
 #include <iostream>
 #include <vector>
 using namespace std;
 
 constexpr char EXIT_CHAR = 'q';
 constexpr char PRINT_CHAR = ';';
+constexpr char KIND_BINARY_STRING = 'b';
 
 //------------------------------------------------------------------------------
 
@@ -80,7 +82,7 @@ Token Token_stream::get()
             cin >> ch;
             if (ch != '0' && ch != '1') {
                 cin.putback(ch);
-                return Token('b', binary_str); // 'b' represents binary string
+                return Token(KIND_BINARY_STRING, binary_str);
             }
             binary_str += ch;
         }
@@ -125,11 +127,12 @@ string binary_string() {
     case '(':    // handle '(' expression ')'
     {
         string s = expression();
-        t = ts.get();                        // v  ERROR 3/5 -- missing close-quote
-        if (t.kind != ')') throw runtime_error("')' expected");
-            return s;
+        t = ts.get();
+        if (t.kind != ')')
+            throw runtime_error("')' expected");
+        return s;
     }
-    case 'b':            // we use 'b' to represent a binary string
+    case KIND_BINARY_STRING:
         return t.value;  // return the binary string
     default:
         throw runtime_error("primary expected");
@@ -155,72 +158,92 @@ string unary_prefix() {
         //     // perform complement
         //     return bin_str;
         // }
-        case 'b':
+        case KIND_BINARY_STRING:
             return t.value;
         }
     }
 }
+
 string create_zero_string(int size) {
     string zero_string = "";
     for (int i=0; i < size; i++)
         zero_string += '0';
     return zero_string;
 }
-string op_and() {
-    string left = unary_prefix();
+/*
+Reconciling binary operator argument size lengths:
+    - Prepend zeros to shorter arg to make them same len (using)
+
+    int size_diff = abs(int(left.size()) - int(right.size()));
+    if (left.size() > right.size())
+        right = create_zero_string(size_diff) + right;
+    else if (right.size() > left.size())
+        left = create_zero_string(size_diff) + left;
+
+    - Only perform operation on lower n bits, where n = len of shorter string
+
+    int size_diff = abs(int(left.size()) - int(right.size()));
+    if (left.size() > right.size()) {
+        result = left.substr(0, size_diff);
+        left   = left.substr(size_diff);
+    } else if (right.size() > left.size()) {
+        result = right.substr(0, size_diff);
+        right  = right.substr(size_diff);
+    }
+*/
+string binary_operator(function<string()> left_token_fn, function<bool(char, char)> condition_one_fn, char operand) {
+    string left = left_token_fn();
     Token t = ts.get();
     while (true) {
-        switch (t.kind) {
-        case '&': {
-            string right = unary_prefix();
+        if (t.kind == operand) {
+            string right = left_token_fn();
             // loop over the two strings, perform operation on the last n bits, where n = min(str1_len, str2_len)
             string result = "";
-
             // append leading 0s to smaller binary string
             int size_diff = abs(int(left.size()) - int(right.size()));
-            if (left.size() > right.size()) {
-                // result = left.substr(0, size_diff);
-                // left   = left.substr(size_diff);
+            if (left.size() > right.size())
                 right = create_zero_string(size_diff) + right;
-            } else if (right.size() > left.size()) {
-                // result = right.substr(0, size_diff);
-                // right  = right.substr(size_diff);
+            else if (right.size() > left.size())
                 left = create_zero_string(size_diff) + left;
-            }
-
-            // cout << result << "\n";
-
             // at this point, left/right should be the same size
             for (int i=0; i < left.size(); i++) {
-                if (left[i] == '1' && right[i] == '1')
+                if (condition_one_fn(left[i], right[i]))
                     result += '1';
                 else
                     result += '0';
-            }
-            
+            }            
             // in case there are more &s, we need to put result -> left.
             left = result;
             t = ts.get();
-            break;
-        }
-        default:
+        } else {
             ts.putback(t);
             return left;
         }
     }
 }
+string op_and() {
+    return binary_operator(
+        &unary_prefix,
+        [](char l, char r) -> bool { return (l == '1' && r == '1'); },
+        '&');
+}
 string op_xor() {
-    string left = op_and();
-    return left;
+    return binary_operator(
+        &op_and,
+        [](char l, char r) -> bool { return (l != r); },
+        '^'
+    );
 }
 string op_or() {
-    string left = op_xor();
-    return left;
+    return binary_operator(
+        &op_xor,
+        [](char l, char r) -> bool { return (l == '1' || r == '1'); },
+        '|'
+    );
 }
-string expression() {
-    string left = op_or();
-    return left;
-}
+
+// mapping to or(), like an alias.
+string expression() { return op_or(); }
 
 //------------------------------------------------------------------------------
 
