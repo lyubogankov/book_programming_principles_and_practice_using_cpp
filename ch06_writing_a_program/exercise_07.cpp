@@ -140,27 +140,29 @@ string binary_string() {
 }
 string unary_prefix() {
     Token t = ts.get();
-    while(true) {
-        switch(t.kind) {
-        case '!': case '~': {
-            string old_str = binary_string();
-            string new_str = "";
-            // perform negation
-            for (char c  : old_str) {
-                if      (c == '0') new_str += '1';
-                else if (c == '1') new_str += '0';
-            }
-            return new_str;
+    switch(t.kind) {
+    case '!': case '~': {
+        string old_str = binary_string();
+        string new_str = "";
+        // perform negation
+        for (char c  : old_str) {
+            if      (c == '0') new_str += '1';
+            else if (c == '1') new_str += '0';
         }
-        // // Not sure what '~' is supposed to do?  2's complement?  1's complement = negation...
-        // case '~': {
-        //     string bin_str = binary_string();
-        //     // perform complement
-        //     return bin_str;
-        // }
-        case KIND_BINARY_STRING:
-            return t.value;
-        }
+        return new_str;
+    }
+    // // Not sure what '~' is supposed to do?  2's complement?  1's complement = negation...
+    // case '~': {
+    //     string bin_str = binary_string();
+    //     // perform complement
+    //     return bin_str;
+    // }
+    case KIND_BINARY_STRING:
+        return t.value;
+    // needed to add this in order to allow use of parans!
+    default:
+        ts.putback(t);
+        return binary_string();
     }
 }
 
@@ -191,6 +193,7 @@ Reconciling binary operator argument size lengths:
         right  = right.substr(size_diff);
     }
 */
+// https://www.geeksforgeeks.org/passing-a-function-as-a-parameter-in-cpp/
 string binary_operator(function<string()> left_token_fn, function<bool(char, char)> condition_one_fn, char operand) {
     string left = left_token_fn();
     Token t = ts.get();
