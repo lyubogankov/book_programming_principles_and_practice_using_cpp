@@ -2,7 +2,57 @@
 
 ![](media/cpp-ch06-dark%20(1).jpg)
 ![](media/cpp-ch06-dark%20(2).jpg)
-![](media/cpp-ch06-dark%20(3).jpg)
+![](media/cpp-ch06-dark%20(3).jpg)ddd
+
+## Open Questions about Matierial Covered
+
+1. The grammar rules for the calculator followed this general pattern for operators with a left/right side:
+
+    ```
+    # Highest priority = 0
+    # GE_x = Grammatical Element, priority x
+
+    [GE_n]:
+        [GE_n-1]                        # standalone GE_n-1 can be GE_n
+        [GE_n  ] [operator_1] [GE_n-1]  # left  side = same element as being defined
+                                        # right side = higher priority
+    ```
+
+
+    Example from the calculator implementation:
+    ```
+    Expression:
+        Term
+        Expression '+' Term
+        Expression '-' Term
+    ```
+
+    However, when implementing the grammar within the calculator program, the right side of the operator rule did *not* use `GE_n`, it used `GE_n-1` just like the left side:
+
+    ```C++
+
+    double expression() {
+        double left = term();    // <--- left side = GE_n-1 (Term), not GE_n (Expression)
+        Token t = ts.get();
+        while (true) {
+            switch (t.kind) {
+            case '+':
+                left += term();
+                t = ts.get();    // <--- right side = GE_n-1
+                break;
+            case '-':
+                left -= term();  // <--- right side = GE_n-1
+                t = ts.get();
+                break;
+            default:
+                ts.putback(t);
+                return left;
+            }
+        }
+    }
+    ```
+
+    **Is there a discrepancy between the grammar presented and the implementation?**
 
 ## Chapter Review Questions
 
