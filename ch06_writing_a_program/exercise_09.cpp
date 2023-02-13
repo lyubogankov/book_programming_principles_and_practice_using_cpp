@@ -20,8 +20,7 @@ int main() {
 
     vector<int> digits;
     vector<string> pos = {"one", "ten", "hundred"};
-    vector<string> pos_later = {"thousand", "million", "billion", "trillion"};
-    vector<string> pos_later_prefix = {"", "ten-", "hundred-"};
+    vector<string> pos_later = {"thousand", "million", "billion", "trillion", "quadrillion", "quintillion"};
     char input;
 
     while(true) {
@@ -49,16 +48,18 @@ int main() {
         // 2. print out the integer I got, also the "places" of each digit
         //    Calculating the integer only works within the size of the long-long int!
         unsigned long long int total = 0;
-        int place = pow(10, digits.size()-1);
+        unsigned long long int place = pow(10, digits.size()-1);
         string pos_signifier = "";
         int idx;
         for (int i=0; i<digits.size(); i++) {
             idx = digits.size() - 1 - i;
             // construct pos signifier
-            if (idx < 3)
+            if (idx < 3)                // one, ten, hundred
                 pos_signifier = pos[idx];
-            else
-                pos_signifier = pos_later_prefix[(idx-3) % 3] + pos_later[(idx-3) / 3];
+            else if ((idx-3) % 3 == 0)  // 1x thousand, million, etc.
+                pos_signifier = pos_later[(idx-3) / 3];
+            else                        // [2, 9]x thousand, million, etc.
+                pos_signifier = pos[(idx-3) % 3] + "-" + pos_later[(idx-3) / 3];
             if (digits[i] != 1)
                 pos_signifier += "s";
             if (digits[i] != 0) {
