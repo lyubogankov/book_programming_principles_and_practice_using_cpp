@@ -33,16 +33,6 @@ int main() {
             if (input > '9' || input < '0')
                 break;
             digits.push_back(input - '0');  // turn input from ASCII char -> integer!
-            // switch (input) {
-            // case 'x':
-            //     return 0;
-            // case '0': case '1': case '2': case '3': case '4':
-            // case '5': case '6': case '7': case '8': case '9':
-            //     digits.push_back(input - '0');  // turn input from ASCII char -> integer!
-            //     break;
-            // default:
-            //     break;
-            // }
         }
 
         // 2. print out the integer I got, also the "places" of each digit
