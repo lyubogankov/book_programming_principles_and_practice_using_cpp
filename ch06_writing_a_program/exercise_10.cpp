@@ -30,17 +30,39 @@ Design:
 */
 
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 using namespace std;
+
+constexpr auto MAX_CIN_COUNT = std::numeric_limits<std::streamsize>::max();
 
 unsigned long long int factorial(int n) {
     if (n == 0)
         return 1;
     unsigned long long int result = 1;
-    for (int i=2; i<=n; i++)
+    for (int i=n; i > 1; i--)
         result *= i;
     return result;
+}
+
+int obtain_integer_within_bounds(int lower_inclusive, int upper_inclusive, string message) {
+    cout << message << '\n'
+         << "Requirements: must be an integer within the range [" << lower_inclusive << ", " << upper_inclusive << "]\n"
+         << "> ";
+    bool valid_input = false;
+    int input;
+    while (!valid_input) {
+        cin >> input;
+        if (lower_inclusive <= input && input <= upper_inclusive) return input;
+        else if (input < lower_inclusive) cout << "Your input is too low."  << '\n' << "> ";
+        else if (input > upper_inclusive) cout << "Your input is too high." << '\n' << "> ";
+        if (cin.fail()) {
+            cin.clear();
+            cin.ignore(MAX_CIN_COUNT, '\n');
+            cout << "> ";
+        }
+    }
 }
 
 bool string_in_strvector(vector<string> haystack, string needle) {
@@ -75,23 +97,27 @@ int main() {
              << "> ";
         cin >> selection;
 
-        if (string_in_strvector(valid_selections_quit, selection)) 
-            break;
-        else if (string_in_strvector(valid_selections_comb, selection))
-            combination = true;
-        else if (string_in_strvector(valid_selections_perm, selection))
-            combination = false;
+        if      (string_in_strvector(valid_selections_quit, selection)) break;
+        else if (string_in_strvector(valid_selections_comb, selection)) combination = true;
+        else if (string_in_strvector(valid_selections_perm, selection)) combination = false;
         else {
             cout << "\nInvalid selection: " + selection + "\nPlease try again.\n\n";
             continue;
         }
 
         // obtain two integers from user: a, b (that satisfy certain constraints)
+        int a = obtain_integer_within_bounds(1, 20, "Please enter 'a', the number of options for selection.");
+        int b = obtain_integer_within_bounds(0, a,  "Please enter 'b', the number of items to select.");
 
-        // perform calculation (perm or comb)
-
-        // display to user!
-        
+        // perform calculation (perm or comb) and display to user
+        auto result = factorial(a) / factorial(a-b);
+        if (combination) {
+            result /= factorial(b);
+            cout << "C(";
+        }
+        else
+            cout << "P(";
+        cout << a << ", " << b << ") = " << result << "\n\n";
     }
 
     return 0;

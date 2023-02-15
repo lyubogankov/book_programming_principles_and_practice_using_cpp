@@ -52,12 +52,29 @@
     }
     ```
 
-    **Is there a discrepancy between the grammar presented and the implementation?**
+    **Is there a discrepancy between the grammar presented and the implementation?  Thoughts:**
 
-    Further thoughts: In the `expression()` vs `Expression` example above, if `expression()` called itself instead of `term()` for `left`, we'd get stuck in an infinite loop.
+    In the `expression()` vs `Expression` example above, if `expression()` called itself instead of `term()` for `left`, we'd get stuck in an infinite loop.
 
     Perhaps the difference between the grammar presented and the implementation is that our calculator code evaluates tokens as they are obtained from the user?  We don't store the tokens for the expression in a syntax tree for later parsing once the expression has been wholly entered.
 
+    **Even further thoughts, inspired by this [2022 PyCon US conference talk](https://www.youtube.com/watch?v=HYKGZunmF50)**
+
+    My read of the code vs grammar was incorrect.  I thought that the code should translate into the following grammar:
+    ```
+    Expression:
+        Term '+' Term  --> Term on left/right side, since that's the function we call
+        Term '-' Term  /
+        Term
+    ```
+    
+    However, this grammar would fail to capture `1 + 2 + 3` -- `1 + 2` would be an `Expression`, but then we'd get left with a `+ 3`, which doesn't match anything in our grammar!
+    
+    The grammar presented in the textbook, where the left hand operand of the addition and subtraction rules is an `Expression`, gets around the issue presented above through its *recursive* definition.
+
+    The code implementation takes an *iterative* approach: we'll keep trying to read in additional tokens within `expression()` *while* the operand is `+` or `-`!  This is equivalent to the grammar presented.
+
+    Case closed :)
 
 ## Chapter Review Questions
 
