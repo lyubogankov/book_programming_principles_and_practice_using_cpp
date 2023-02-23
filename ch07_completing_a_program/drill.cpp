@@ -18,6 +18,8 @@ Drill
         return Token(name, s);
 
     Issue -- Token class did not have constructor with (char, string) as arguments!
+	
+	This was the only compile bug I got with --std=c++11...
 
 
  2. Go through the entire program and add appropriate comments.
@@ -28,36 +30,61 @@ Drill
  3. As you commented, you found errors (deviously inserted especially for you to find).
     Fix them; they are not in the text of the book.
 
-    I think I found them all??
+    Bugs I found by just reading the code:
+		- quit not working
 
 
  4. Testing: prepare a set of inputs and use them to test the calculator.
     Is your list pretty complete? What should you look for?
     Include negative values, 0, very small, very large, and “silly” inputs.
  
-    1) Test all digits (0-9, and '.')
-    2) Test positive / negative unary operator
-    3) Test multiplication, division, modulus of two numbers
+d   1) Test all digits (0-9, and '.')
+d   2) Test positive / negative unary operator
+		- try out chaining unary operators! ex: --2 = 2, ---2 = -2, -+2 = -2, etc.
+d   3) Test multiplication, division, modulus of two numbers
         - for division / mod: try zero as second operand!  Should get helpful error
-    4) Test addition, subtraction of two numbers
-    5) Test order of operations with three numbers
+		- try negative numbers!
+d   4) Test addition, subtraction of two numbers
+		- try negative numbers!
+d   5) Test order of operations with three numbers
         no parens (combo of + - and / % *)
-E       with parens
-E   6) Test variables 
-        - Set (first time), should work
-        - Try re-defining same variable (should get error)
-        - Print out the variable value
-        - Try using variable in two-operand expression
-        - Try setting variable equal to an expression
-        - Try updating variable's value (idk if this is allowed in spec??)
-    7) Quit
+d*      with parens
+d*  6) Test variables 
+ d      - Set (first time), should work
+ d      - Try re-defining same variable (should get error)
+ d      - Print out the variable value
+ d      - Try using variable in two-operand expression
+ d      - Try setting variable equal to an expression
+ d      - Try updating variable's value
+d   7) Quit
 
     Bad inputs:
-    
+d*	1) {operand} {operator};
+		"error: primary expected"
+		Then, remainder of input is "eaten" until ';' is provided.
+		This is EVEN WITH the ';' at the end!
 
+		Fixed by adding cin.unget() prior to throwing error win primary()
+d	2) No closing paren
+	3) variables
+		- non existant variable name (error msg: "{var} not declared")
+			Doesn't have same issue as above: "{non existing var};" goes right back to prompt
+    4) Token_stream::get()
+		- Bad token (ex: '>')
 
 
  5. Do the testing and fix any bugs that you missed when you commented.
+
+	Done, there were three bugs I found while testing!
+		- Token_stream::get not processing words ('=' vs '+=')
+		- Parentheses didn't work because no return statement (case fell through)
+		- variable set_value
+			- for loop <= stop condition vs correct <
+			- set_value function never called -- added code within statement()
+		- % was not supported
+		- inconsistent error handling with "{operand} {operator};" vs other errors
+			- fixed w cin.unget() prior to error call win primary()
+
  
  6. Add a predefined name k meaning 1000.
  
@@ -76,6 +103,36 @@ E   6) Test variables
 11. Change the “quit keyword” from quit to exit.
     That will involve defining a string for quit just as we did for let in §7.8.2.
 
+*/
+
+/* Grammar
+----------
+
+Calculation:
+    Statement
+    Print (';')
+    Quit ('q')
+    Calculation Statement
+Statement:
+    Declaration
+    Expression
+	{existing variable} '=' Expression  (L addition)
+Declaration:
+    "let" Name '=' Expression
+Expression:
+    Term
+    Expression '+' Term
+    Expression '-' Term
+Term:
+    Primary
+    Term '*' Primary
+    Term '/' Primary
+    Term '%' Primary
+Primary:
+    Number (or variable)
+    '(' Expression ')'
+    '-'Primary
+    '+'Primary
 */
 
 #include "../std_lib_facilities.h"
@@ -102,7 +159,7 @@ public:
 };
 
 const char let = 'L';
-const char quit = 'Q';
+const char quit = 'q';
 const char print = ';';
 const char number = '8';
 const char name = 'a';
@@ -145,7 +202,7 @@ Token Token_stream::get()
 		if (isalpha(ch)) {
 			string s;
 			s += ch;
-			while (cin.get(ch) && (isalpha(ch) || isdigit(ch))) s = ch;
+			while (cin.get(ch) && (isalpha(ch) || isdigit(ch))) s += ch; // L: this was previously "=", not "+="
 			cin.unget();
 			if (s == "let") return Token(let);
 			if (s == "quit") return Token(quit); // L: should return quit, not 'name'
@@ -216,6 +273,7 @@ double primary()
         double d = expression();
         t = ts.get();
         if (t.kind != ')') error("')' expected");  // L: misleading print statement '(' vs ')'
+		return d;  // L: no return statement here, so this case "falls through"
 	}
 	case '-':
 		return -primary();
@@ -227,6 +285,7 @@ double primary()
 	case name:
 		return get_value(t.name);
 	default:
+		cin.unget();
 		error("primary expected");
 	}
 }
@@ -297,6 +356,20 @@ double statement()
 	switch (t.kind) {
 	case let:
 		return declaration();
+	// L: new!  The function for setting values exists, but it's never used!
+	case name: {
+		string varname = t.name;
+		if (!is_declared(varname)) error(varname, " not declared");
+		Token t2 = ts.get();
+		if (t2.kind != '=') {
+			// error("= missing in declaration of ", varname);
+			ts.unget(t);
+			return expression();
+		}
+		double d = expression();
+		set_value(varname, d);
+		return d;
+	}
 	default:
 		ts.unget(t);
 		return expression();
@@ -313,6 +386,9 @@ const string result = "= ";
 
 void calculate()
 {
+	// (5) define constants!
+	names.push_back(Variable("k", 1000.0));
+
 	while (true) try {
 		cout << prompt;
 		Token t = ts.get();
