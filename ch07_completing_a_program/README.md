@@ -59,13 +59,8 @@ Testing [Ch06 ex02-03 calculator program](../ch06_writing_a_program/exercise_02-
  Token Token_stream::get()
  {
 -	if (buffer.size() > 0) {
--		// I'm not sure this will work:
--		// - vector.back() returns a /reference/, not a copy.
--		// - vector.pop_back() /deletes/ the last element.
--		// Actually - perhaps this makes a copy?  Let's try.
--
--		Token t_buffered = buffer.back();
--		buffer.pop_back();
+-       Token t_buffered = buffer.back();   // make copy of last element in buffer
+-		buffer.pop_back();                  // delete last element from buffer
 -		return t_buffered;
 -	}
 +	if (full) { full = false; return buffer; }
@@ -78,8 +73,8 @@ Testing [Ch06 ex02-03 calculator program](../ch06_writing_a_program/exercise_02-
  void Token_stream::ignore(char c)
  {
 -	while (buffer.size() > 0) {
--		// Assuming we're trying to ignore a ';'
--		// as opposed to a specific number, which isn't encoded in Token.kind
+-		// Assuming we're trying to ignore a ';' (or other token whose kind is itself)
+-		// as opposed to a specific number or letter, which isn't encoded in Token.kind
 -		if (buffer.back().kind == c) return;
 -		buffer.pop_back();
 +	if (full && c == buffer.kind) {
