@@ -32,11 +32,111 @@ Testing [Ch06 ex02-03 calculator program](../ch06_writing_a_program/exercise_02-
 
 ### `drill.cpp` -- variable re-assignment
 
-**Approach 1** - handle within `statement()` -- needed to make buffer larger, so that I could buffer `{varname};`, which is two tokens (variable name, and a semicolon).  This was an involved change:
+**Approach 1** - handle within `statement()` -- needed to make buffer larger, so that I could buffer `{varname};`, which is two tokens (variable name, and a semicolon).  This was an involved change: touched `statement()`, `Token_stream.buffer`, `Token_stream::get()`, `Token_stream::ignore()`.
 
+**Approach 2** - handle entirely within `primary()`, within same case as variable lookup.  This is much cleaner!
 
+```diff
+--- a/ch07_completing_a_program/drill.cpp       // (approach 1)
++++ b/ch07_completing_a_program/drill.cpp       // (approach 2)
+ 
+ class Token_stream {
+-	vector<Token> buffer;
++	bool full;
++	Token buffer;
+ public:
+-	Token_stream() :buffer({}) { }
++	Token_stream() :full(0), buffer(0) { }
++
+ 	Token get();
+-	void unget(Token t) { buffer.push_back(t); }
++	void unget(Token t) { buffer = t; full = true; }
++
+ 	void ignore(char);
+ };
+ 
+ 
+ Token Token_stream::get()
+ {
+-	if (buffer.size() > 0) {
+-		// I'm not sure this will work:
+-		// - vector.back() returns a /reference/, not a copy.
+-		// - vector.pop_back() /deletes/ the last element.
+-		// Actually - perhaps this makes a copy?  Let's try.
+-
+-		Token t_buffered = buffer.back();
+-		buffer.pop_back();
+-		return t_buffered;
+-	}
++	if (full) { full = false; return buffer; }
+ 	char ch;
+ 	cin >> ch;
+ 	switch (ch) {
 
-**Approach 2** - handle within `primary()`, within same case as variable lookup.  This is much cleaner!
+@@ -224,12 +214,11 @@ Token Token_stream::get()
+ 
+ void Token_stream::ignore(char c)
+ {
+-	while (buffer.size() > 0) {
+-		// Assuming we're trying to ignore a ';'
+-		// as opposed to a specific number, which isn't encoded in Token.kind
+-		if (buffer.back().kind == c) return;
+-		buffer.pop_back();
++	if (full && c == buffer.kind) {
++		full = false;
++		return;
+ 	}
++	full = false;
+ 
+ 	char ch;
+ 	while (cin >> ch)
+
+@@ -293,8 +282,20 @@ double primary()
+         return primary();
+ 	case number:
+ 		return t.value;
+-	case name:
+-		return get_value(t.name);
++	// updated to perform get OR set
++	case name: {
++		string varname = t.name;
++		Token t2 = ts.get();
++		// variable lookup
++		if (t2.kind != '=') {
++			ts.unget(t2);
++			return get_value(varname);
++		}
++		// variable re-assignment
++		double d = expression();
++		set_value(varname, d);
++		return d;
++	}
+ 	default:
+ 		cin.unget();
+ 		error("primary expected");
+
+@@ -367,22 +368,6 @@ double statement()
+ 	switch (t.kind) {
+ 	case let:
+ 		return declaration();
+-	// L: new!  The function for setting values exists, but it's never used!
+-	case name: {
+-		string varname = t.name;
+-		if (!is_declared(varname)) error(varname, " not declared");
+-		Token t2 = ts.get();
+-		if (t2.kind != '=') {
+-			ts.unget(t2);           // putting onto stack first, will be processed last (LIFO)
+-			ts.unget(t);            // putting onto stack last for first processing
+-			return expression();
+-		}
+-		double d = expression();
+-		set_value(varname, d);
+-		return d;
+-	}
+ 	default:
+ 		ts.unget(t);
+ 		return expression();
+```
 
 ## Open Questions
 
