@@ -282,8 +282,20 @@ double primary()
         return primary();
 	case number:
 		return t.value;
-	case name:
-		return get_value(t.name);
+	// updated to perform get OR set
+	case name: {
+		string varname = t.name;
+		Token t2 = ts.get();
+		// variable lookup
+		if (t2.kind != '=') {
+			ts.unget(t2);
+			return get_value(varname);
+		}
+		// variable re-assignment
+		double d = expression();
+		set_value(varname, d);
+		return d;
+	}
 	default:
 		cin.unget();
 		error("primary expected");
@@ -356,20 +368,6 @@ double statement()
 	switch (t.kind) {
 	case let:
 		return declaration();
-	// L: new!  The function for setting values exists, but it's never used!
-	case name: {
-		string varname = t.name;
-		if (!is_declared(varname)) error(varname, " not declared");
-		Token t2 = ts.get();
-		if (t2.kind != '=') {
-			// error("= missing in declaration of ", varname);
-			ts.unget(t);
-			return expression();
-		}
-		double d = expression();
-		set_value(varname, d);
-		return d;
-	}
 	default:
 		ts.unget(t);
 		return expression();

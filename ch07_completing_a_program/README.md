@@ -30,6 +30,14 @@ Testing [Ch06 ex02-03 calculator program](../ch06_writing_a_program/exercise_02-
 |                     | `=0`
 
 
+### `drill.cpp` -- variable re-assignment
+
+**Approach 1** - handle within `statement()` -- needed to make buffer larger, so that I could buffer `{varname};`, which is two tokens (variable name, and a semicolon).  This was an involved change:
+
+
+
+**Approach 2** - handle within `primary()`, within same case as variable lookup.  This is much cleaner!
+
 ## Open Questions
 
 
