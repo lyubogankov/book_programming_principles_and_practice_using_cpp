@@ -33,8 +33,9 @@ Basic commands:
 - `run` to start the program
 - `continue` / `cont` to continue execution from current breakpoint
 - `next` / `n` to run next line
+- `print {variable}`
 
 
 #### Textbook resources
-https://www.stroustrup.com/programming.html
-https://www.stroustrup.com/programming_support.html
+- https://www.stroustrup.com/programming.html
+- https://www.stroustrup.com/programming_support.html
