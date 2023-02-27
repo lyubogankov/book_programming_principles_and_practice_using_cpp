@@ -27,11 +27,14 @@
 	- statement() now sends declaration() t.kind == constant (aka, are we making a const or var)
 
 
-4. The get_value(), set_value(), is_declared(), and define_name() functions all operate on the variable var_table.
+4. The get_value(), set_value(), is_declared(), and define_name() functions all operate on the variable names (vector<Variable>).
    Define a class called Symbol_table with a member var_table of type vector<Variable> and member functions get(), set(), is_declared(), and declare().
    Rewrite the calculator to use a variable of type Symbol_table.
 
-
+	- Defined Symbol_table class
+	- Moved functionality for get_value(), set_value(), is_declared() into it
+	- Created declare() function, which just replaces the names.push_back() in order to create variables
+		(This decouples the creation of variables from the underlying data structure)
 
 
 5. Modify Token_stream::get() to return Token(print) when it sees a newline.
@@ -99,6 +102,7 @@ Variable
 
 #include "../std_lib_facilities.h"
 
+// ------------------------------------------------------------------------------------------------
 struct Token {
 	char kind;
 	double value;
@@ -197,6 +201,8 @@ void Token_stream::ignore(char c)
 		if (ch == c) return;
 }
 
+// ------------------------------------------------------------------------------------------------
+
 struct Variable {
 	string name;
 	double value;
@@ -205,33 +211,41 @@ struct Variable {
 	Variable(string n, double v, bool ro) :name(n), value(v), readonly(ro) { }
 };
 
-vector<Variable> names;
-
-double get_value(string s)
-{
-	for (int i = 0; i < names.size(); ++i)
-		if (names[i].name == s) return names[i].value;
-	error("get: undefined name ", s);
+class Symbol_table {
+	vector<Variable> var_table;
+public:
+	Symbol_table() :var_table({}) { }
+	double declare(string v, double d, bool readonly);
+	double get(string v);
+	void set(string v, double d);
+	bool is_declared(string v);
+};
+double Symbol_table::declare(string v, double d, bool readonly) {
+	var_table.push_back(Variable(v, d, readonly));
 }
-
-void set_value(string s, double d)
-// Set value of existing variable
-{
-	for (int i = 0; i < names.size(); ++i)
-		if (names[i].name == s) {
-			if (names[i].readonly == true) error("Cannot set value to constant variable");
-			names[i].value = d;
+double Symbol_table::get(string v) {
+	for (int i = 0; i < var_table.size(); ++i)
+		if (var_table[i].name == v) return var_table[i].value;
+			error("get: undefined name ", v);
+}
+void Symbol_table::set(string v, double d) {
+	for (int i = 0; i < var_table.size(); ++i)
+		if (var_table[i].name == v) {
+			if (var_table[i].readonly == true) error("Cannot set value to constant variable ", v);
+			var_table[i].value = d;
 			return;
 		}
-	error("set: undefined name ", s);
+	error("set: undefined name ", v);
 }
-
-bool is_declared(string s)
-{
-	for (int i = 0; i < names.size(); ++i)
-		if (names[i].name == s) return true;
+bool Symbol_table::is_declared(string v) {
+	for (int i = 0; i < var_table.size(); ++i)
+		if (var_table[i].name == v) return true;
 	return false;
 }
+
+Symbol_table symbol_table;
+
+// ------------------------------------------------------------------------------------------------
 
 Token_stream ts;
 
@@ -266,11 +280,11 @@ double primary()
 		// variable lookup
 		if (t2.kind != '=') {
 			ts.unget(t2);
-			return get_value(varname);
+			return symbol_table.get(varname);
 		}
 		// variable re-assignment
 		double d = expression();
-		set_value(varname, d);
+		symbol_table.set(varname, d);
 		return d;
 	}
 	case _sqrt: {
@@ -344,11 +358,11 @@ double declaration(bool constant)
 	Token t = ts.get();
 	if (t.kind != name) error("name expected in declaration");
 	string varname = t.name;
-	if (is_declared(varname)) error(varname, " declared twice");
+	if (symbol_table.is_declared(varname)) error(varname, " declared twice");
 	Token t2 = ts.get();
 	if (t2.kind != '=') error("= missing in declaration of ", varname);
 	double d = expression();
-	names.push_back(Variable(varname, d, constant));
+	symbol_table.declare(varname, d, constant);
 	return d;
 }
 
@@ -365,6 +379,8 @@ double statement()
 	}
 }
 
+// ------------------------------------------------------------------------------------------------
+
 void clean_up_mess()
 {
 	ts.ignore(print);
@@ -373,9 +389,11 @@ void clean_up_mess()
 const string prompt = "> ";
 const string result = "= ";
 
-void calculate()
+void calculator_REPL()
 {
-	names.push_back(Variable("k", 1000.0, true));  // #3 - turning into constant
+	// #3 - turning into constant
+	// #4 - using Symbol_table class
+	symbol_table.declare("k", 1000.0, true);
 
 	while (true) try {
 		cout << prompt;
@@ -392,9 +410,8 @@ void calculate()
 }
 
 int main()
-
 try {
-	calculate();
+	calculator_REPL();
 	return 0;
 }
 catch (exception& e) {
