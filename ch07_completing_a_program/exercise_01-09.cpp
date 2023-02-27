@@ -20,7 +20,11 @@
    If you want to let the user define constants (rather than just having pi and e defined as constants),
    you’ll have to add a notation to let the user express that, for example, const pi = 3.14;.
 
-
+	- Defined const char for representing constant token's kind
+	- Defined const string for constant keyword ("const")
+	- Added new if clause to Token_stream::get()'s default case to detect constant keyword
+	- declaration() now takes a bool argument that is passed into Variable instantiation to make it constant or not
+	- statement() now sends declaration() t.kind == constant (aka, are we making a const or var)
 
 
 4. The get_value(), set_value(), is_declared(), and define_name() functions all operate on the variable var_table.
@@ -67,6 +71,7 @@ Statement:
     Expression
 Declaration:
     "let" Name '=' Expression		// or "#"
+	"const" Name '=' Expression
 Expression:
     Term
     Expression '+' Term
@@ -108,15 +113,15 @@ class Token_stream {
 	Token buffer;
 public:
 	Token_stream() :full(0), buffer(0) { }
-
 	Token get();
 	void unget(Token t) { buffer = t; full = true; }
-
 	void ignore(char);
 };
 
 const char let = 'L';
 const string var_declaration = "let";
+const char constant = 'C';
+const string const_declaration = "const";
 const char quit = 'q';
 const string quit_full = "exit";
 const char print = ';';
@@ -172,6 +177,7 @@ Token Token_stream::get()
 			if (s == "sqrt") return Token(_sqrt);
 			if (s == quit_full) return Token(quit);
 			if (s == var_declaration) return Token(let);
+			if (s == const_declaration) return Token(constant);
 			return Token(name, s);
 		}
 		error("Bad token");
@@ -194,7 +200,9 @@ void Token_stream::ignore(char c)
 struct Variable {
 	string name;
 	double value;
-	Variable(string n, double v) :name(n), value(v) { }
+	bool readonly;
+	Variable(string n, double v) :name(n), value(v), readonly(false) { }
+	Variable(string n, double v, bool ro) :name(n), value(v), readonly(ro) { }
 };
 
 vector<Variable> names;
@@ -211,6 +219,7 @@ void set_value(string s, double d)
 {
 	for (int i = 0; i < names.size(); ++i)
 		if (names[i].name == s) {
+			if (names[i].readonly == true) error("Cannot set value to constant variable");
 			names[i].value = d;
 			return;
 		}
@@ -330,7 +339,7 @@ double expression()
 	}
 }
 
-double declaration()
+double declaration(bool constant)
 {
 	Token t = ts.get();
 	if (t.kind != name) error("name expected in declaration");
@@ -339,7 +348,7 @@ double declaration()
 	Token t2 = ts.get();
 	if (t2.kind != '=') error("= missing in declaration of ", varname);
 	double d = expression();
-	names.push_back(Variable(varname, d));
+	names.push_back(Variable(varname, d, constant));
 	return d;
 }
 
@@ -348,7 +357,8 @@ double statement()
 	Token t = ts.get();
 	switch (t.kind) {
 	case let:
-		return declaration();
+	case constant:
+		return declaration((t.kind == constant));
 	default:
 		ts.unget(t);
 		return expression();
@@ -365,7 +375,7 @@ const string result = "= ";
 
 void calculate()
 {
-	names.push_back(Variable("k", 1000.0));
+	names.push_back(Variable("k", 1000.0, true));  // #3 - turning into constant
 
 	while (true) try {
 		cout << prompt;
