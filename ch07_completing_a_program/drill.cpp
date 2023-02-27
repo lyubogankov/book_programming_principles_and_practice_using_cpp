@@ -141,9 +141,8 @@ Calculation:
 Statement:
     Declaration
     Expression
-	{existing variable} '=' Expression  (L addition)
 Declaration:
-    "let" Name '=' Expression
+    "let" Name '=' Expression		// or "#"
 Expression:
     Term
     Expression '+' Term
@@ -155,8 +154,8 @@ Term:
     Term '%' Primary
 Primary:
     Number
-	Variable
-	Variable '=' Expression
+	Existing_Variable
+	Existing_Variable '=' Expression
     '(' Expression ')'
 	"sqrt"'(' Expression ')'
 	"pow"'(' Expression ',' Integer ')'
