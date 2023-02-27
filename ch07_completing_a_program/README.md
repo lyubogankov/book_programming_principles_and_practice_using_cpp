@@ -37,8 +37,8 @@ Testing [Ch06 ex02-03 calculator program](../ch06_writing_a_program/exercise_02-
 **Approach 2** - handle entirely within `primary()`, within same case as variable lookup.  This is much cleaner!
 
 ```diff
---- a/ch07_completing_a_program/drill.cpp       // (approach 1)
-+++ b/ch07_completing_a_program/drill.cpp       // (approach 2)
+--- a/ch07_completing_a_program/drill.cpp       // (Approach 1)
++++ b/ch07_completing_a_program/drill.cpp       // (Approach 2)
  
  class Token_stream {
 -	vector<Token> buffer;
