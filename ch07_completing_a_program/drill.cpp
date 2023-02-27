@@ -99,12 +99,16 @@ d	2) No closing paren
 
 	- Update to grammar: added sqrt to primary.
 	- Code changes:
+		- added constant to signify sqrt's "kind"
 		- Token_stream::get, added within default 
 		- primary(): added code to obtain parens & expression + error checking
 
 
  9. Allow the user to use pow(x,i) to mean “Multiply x with itself i times”; for example, pow(2.5,3) is 2.5*2.5*2.5.
     Require i to be an integer using the technique we used for %.
+
+
+
 
 10. Change the “declaration keyword” from let to #.
 
@@ -142,6 +146,7 @@ Primary:
 	Variable '=' Expression
     '(' Expression ')'
 	"sqrt"'(' Expression ')'
+	"pow"'(' Expression ',' Integer ')'
     '-'Primary
     '+'Primary
 */
@@ -175,6 +180,7 @@ const char print = ';';
 const char number = '8';
 const char name = 'a';
 const char _sqrt = 's';
+const char _pow = 'p';
 
 Token Token_stream::get()
 {
@@ -190,6 +196,7 @@ Token Token_stream::get()
 	case '/':
 	case '%':
 	case '=':
+	case ',':   // L: added for pow(x, i)
     case quit:  // L: this was not here!
     case print:
 		return Token(ch);
@@ -217,6 +224,7 @@ Token Token_stream::get()
 			while (cin.get(ch) && (isalpha(ch) || isdigit(ch))) s += ch; // L: this was previously "=", not "+="
 			cin.unget();
 			if (s == "let") return Token(let);
+			if (s == "pow") return Token(_pow);
 			if (s == "quit") return Token(quit); // L: should return quit, not 'name'
 			if (s == "sqrt") return Token(_sqrt);
 			return Token(name, s);
@@ -277,6 +285,13 @@ Token_stream ts;
 
 double expression();
 
+void ensure_next_token_of_desired_kind(char desired, string error_msg) {
+	Token t = ts.get();
+	if (t.kind == desired) return;
+	ts.unget(t);
+	error(error_msg);
+}
+
 double primary()
 {
 	Token t = ts.get();
@@ -284,11 +299,7 @@ double primary()
 	case '(':
 	{	
         double d = expression();
-        t = ts.get();
-        if (t.kind != ')') {
-			ts.unget(t);
-			error("')' expected");  // L: misleading print statement '(' vs ')'
-		}
+		ensure_next_token_of_desired_kind(')', "')' expected");
 		return d;  // L: no return statement here, so this case "falls through"
 	}
 	case '-':
@@ -313,19 +324,20 @@ double primary()
 		return d;
 	}
 	case _sqrt: {
-		Token t2 = ts.get();
-		if (t2.kind != '(') {
-			ts.unget(t2);
-			error("'(' expected after \"sqrt\"");
-		}
+		ensure_next_token_of_desired_kind('(', "'(' expected after \"sqrt\"");
 		double d = expression();
 		if (d < 0) error("Cannot compute sqrt() of negative number");
-		Token t3 = ts.get();
-		if (t3.kind != ')') {
-			ts.unget(t3);
-			error("')' expected to conclude sqrt()");
-		}
+		ensure_next_token_of_desired_kind(')', "')' expected to conclude sqrt()");
 		return sqrt(d); // take the actual square root
+	}
+	// pow(x, i) = x^i;
+	case _pow: {
+		ensure_next_token_of_desired_kind('(', "'(' expected after \"pow\"");
+		double x = expression();
+		ensure_next_token_of_desired_kind(',', "',' expected to delineate arguments of pow()");
+		int i = narrow_cast<int>(expression()); // prevents info loss, will return error for non-int arg
+		ensure_next_token_of_desired_kind(')', "')' expected to conclude ()");
+		return pow(x, i);
 	}
 	default:
 		cin.unget();
