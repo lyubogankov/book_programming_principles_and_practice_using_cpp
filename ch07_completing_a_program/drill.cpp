@@ -87,14 +87,22 @@ d	2) No closing paren
 
  
  6. Add a predefined name k meaning 1000.
+
+	Done!  Needed to fix variable set / readback to test it :)
+
  
  7. Give the user a square root function sqrt(), for example, sqrt(2+6.7).
     Naturally, the value of sqrt(x) is the square root of x; for example, sqrt(9) is 3.
     Use the standard library sqrt() function that is available through the header std_lib_facilities.h.
     Remember to update the comments, including the grammar.
- 
- 8. Catch attempts to take the square root of a negative number and print an appropriate error message.
- 
+8. Catch attempts to take the square root of a negative number and print an appropriate error message.
+
+	- Update to grammar: added sqrt to primary.
+	- Code changes:
+		- Token_stream::get, added within default 
+		- primary(): added code to obtain parens & expression + error checking
+
+
  9. Allow the user to use pow(x,i) to mean “Multiply x with itself i times”; for example, pow(2.5,3) is 2.5*2.5*2.5.
     Require i to be an integer using the technique we used for %.
 
@@ -129,8 +137,11 @@ Term:
     Term '/' Primary
     Term '%' Primary
 Primary:
-    Number (or variable)
+    Number
+	Variable
+	Variable '=' Expression
     '(' Expression ')'
+	"sqrt"'(' Expression ')'
     '-'Primary
     '+'Primary
 */
@@ -163,6 +174,7 @@ const char quit = 'q';
 const char print = ';';
 const char number = '8';
 const char name = 'a';
+const char _sqrt = 's';
 
 Token Token_stream::get()
 {
@@ -206,6 +218,7 @@ Token Token_stream::get()
 			cin.unget();
 			if (s == "let") return Token(let);
 			if (s == "quit") return Token(quit); // L: should return quit, not 'name'
+			if (s == "sqrt") return Token(_sqrt);
 			return Token(name, s);
 		}
 		error("Bad token");
@@ -272,7 +285,10 @@ double primary()
 	{	
         double d = expression();
         t = ts.get();
-        if (t.kind != ')') error("')' expected");  // L: misleading print statement '(' vs ')'
+        if (t.kind != ')') {
+			ts.unget(t);
+			error("')' expected");  // L: misleading print statement '(' vs ')'
+		}
 		return d;  // L: no return statement here, so this case "falls through"
 	}
 	case '-':
@@ -295,6 +311,21 @@ double primary()
 		double d = expression();
 		set_value(varname, d);
 		return d;
+	}
+	case _sqrt: {
+		Token t2 = ts.get();
+		if (t2.kind != '(') {
+			ts.unget(t2);
+			error("'(' expected after \"sqrt\"");
+		}
+		double d = expression();
+		if (d < 0) error("Cannot compute sqrt() of negative number");
+		Token t3 = ts.get();
+		if (t3.kind != ')') {
+			ts.unget(t3);
+			error("')' expected to conclude sqrt()");
+		}
+		return sqrt(d); // take the actual square root
 	}
 	default:
 		cin.unget();
