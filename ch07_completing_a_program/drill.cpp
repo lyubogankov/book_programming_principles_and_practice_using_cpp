@@ -107,13 +107,26 @@ d	2) No closing paren
  9. Allow the user to use pow(x,i) to mean “Multiply x with itself i times”; for example, pow(2.5,3) is 2.5*2.5*2.5.
     Require i to be an integer using the technique we used for %.
 
-
+	- Code changes:
+		- create constant to signify pow's "kind"
+		- update Token_stream::get
+			- defined "pow" token within default case
+			- added ',' as allowed character (its own kind)
+		- added functionality within primary()
 
 
 10. Change the “declaration keyword” from let to #.
 
+	- Code changes:
+		- created a const string for the declaration keyword
+		- within Token_stream::get(), had to change the default if clause from isalpha() to also allow # character (feels hacky though)
+
 11. Change the “quit keyword” from quit to exit.
     That will involve defining a string for quit just as we did for let in §7.8.2.
+
+	- Code changes:
+		- created a const string for the quit keyword
+		- use it within Token_stream::get(), and return quit token if we see it!
 
 */
 
@@ -175,7 +188,9 @@ public:
 };
 
 const char let = 'L';
+const string var_declaration = "#";
 const char quit = 'q';
+const string quit_full = "exit";
 const char print = ';';
 const char number = '8';
 const char name = 'a';
@@ -218,15 +233,16 @@ Token Token_stream::get()
         return Token(number, val);
 	}
 	default:
-		if (isalpha(ch)) {
+		// the OR clause feels hacky.  Not sure how it's "supposed" to be done.
+		if (isalpha(ch) || ch == '#') {
 			string s;
 			s += ch;
 			while (cin.get(ch) && (isalpha(ch) || isdigit(ch))) s += ch; // L: this was previously "=", not "+="
 			cin.unget();
-			if (s == "let") return Token(let);
 			if (s == "pow") return Token(_pow);
-			if (s == "quit") return Token(quit); // L: should return quit, not 'name'
 			if (s == "sqrt") return Token(_sqrt);
+			if (s == quit_full) return Token(quit); // L: should return quit, not 'name'
+			if (s == var_declaration) return Token(let);
 			return Token(name, s);
 		}
 		error("Bad token");
