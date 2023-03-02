@@ -39,17 +39,16 @@
 
 5. Modify Token_stream::get() to return Token(print) when it sees a newline.
    This implies looking for whitespace characters and treating newline ('\n') specially.
-   You might find the standard library function isspace(ch), which returns true if ch is a whitespace character, useful.
+   You might find the standard library function isspace(ch),
+   which returns true if ch is a whitespace character, useful.
 
-
+	Change 1: use "noskipws" stream format specifier for cin to keep whitespace
+	Change 2: eat non-newline whitespace
+	Change 3: return Token(print) when we encounter a newline
 
 
 6. Part of what every program should do is to provide some way of helping its user.
    Have the calculator print out some instructions for how to use the calculator if the user presses the H key (both upper- and lowercase).
-
-
-
-
 7. Change the q and h commands to be quit and help, respectively.
 
 
@@ -128,6 +127,9 @@ const char constant = 'C';
 const string const_declaration = "const";
 const char quit = 'q';
 const string quit_full = "exit";
+const char help = 'h';
+const char help_upper = 'H';
+const string help_full = "help";
 const char print = ';';
 const char number = '8';
 const char name = 'a';
@@ -138,8 +140,19 @@ Token Token_stream::get()
 {
 	if (full) { full = false; return buffer; }
 	char ch;
-	cin >> ch;
+	// # 5
+	// eat whitespace
+	// https://en.cppreference.com/w/cpp/string/byte/isspace (the table really helped)
+	do { cin >> noskipws >> ch; } while(isspace(ch) and ch != '\n');
 	switch (ch) {
+	case '\n': 
+		// https://stackoverflow.com/a/15905343
+		// https://en.cppreference.com/w/cpp/io/manip/skipws
+		return Token(print);
+	// #6
+	case help:
+	case help_upper:
+		return Token(help);
 	case '(':
 	case ')':
 	case '+':
@@ -180,6 +193,7 @@ Token Token_stream::get()
 			if (s == "pow") return Token(_pow);
 			if (s == "sqrt") return Token(_sqrt);
 			if (s == quit_full) return Token(quit);
+			if (s == help_full) return Token(help);  // # 7
 			if (s == var_declaration) return Token(let);
 			if (s == const_declaration) return Token(constant);
 			return Token(name, s);
@@ -386,6 +400,22 @@ void clean_up_mess()
 	ts.ignore(print);
 }
 
+void print_help() {
+	cout << "Welcome to our simple calculator.\n"
+		 << "Please enter expressions using floating point numbers.\n"
+		 << "Valid operators:\n"
+		 << "     +     (addition)\n"
+		 << "     -     (subtraction)\n"
+		 << "     *     (multiplication)\n"
+		 << "     /     (division)\n"
+		 << "    ( )    (parentheses) \n"
+		 << " pow(b, n) (b = base, n = exponent)\n"
+		 << " sqrt(x)   (square root of non-negative x)\n"
+		 << "To evaluate expression, type '" << print << "' or press ENTER\n"
+		 << "To exit calculator, type '" << quit << "' or '" << quit_full << "'\n"
+		 << "\n";
+}
+
 const string prompt = "> ";
 const string result = "= ";
 
@@ -400,6 +430,7 @@ void calculator_REPL()
 		Token t = ts.get();
 		while (t.kind == print) t = ts.get();
 		if (t.kind == quit) return;
+		if (t.kind == help) print_help();
 		ts.unget(t);
 		cout << result << statement() << endl;
 	}
