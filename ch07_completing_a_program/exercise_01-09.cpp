@@ -81,6 +81,15 @@
    Fix that grammar. Also add whatever you feel is needed to that comment 
    as the first comment of the calculator program and its overall comment.
 
+   # ex: 4+4; 5-6; help 2*3; q
+		 ^^^                     Calculation -> Statement -> Expression
+		    ^                    Calculation -> Print
+			  ^^^                Calculation -> Statement -> Expression
+				 ^               Calculation -> Print
+				   ^^^^          Calculation -> Help
+					    ^^^      Calculation -> Statement -> Expression
+						   ^     Calculation -> Print
+							 ^   Calculation -> Quit
 
 
 9. Suggest three improvements (not mentioned in this chapter) to the calculator. Implement one of them.
@@ -96,15 +105,6 @@ Calculation:
     Quit ('q') (quit)
 	Help (h) (H) (help)
     Calculation Statement  #8 -- recursively allowing sequences of statements in the grammar.
-						   # ex: 4+4; 5-6; help 2*3; q
-						         ^^^                     Calculation -> Statement -> Expression
-								    ^                    Calculation -> Print
-									  ^^^                Calculation -> Statement -> Expression
-									     ^               Calculation -> Print
-										   ^^^^          Calculation -> Help
-										        ^^^      Calculation -> Statement -> Expression
-											        ^    Calculation -> Print
-												      ^  Calculation -> Quit
 Statement:
     Declaration
     Expression
