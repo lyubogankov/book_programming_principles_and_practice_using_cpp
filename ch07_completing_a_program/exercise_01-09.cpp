@@ -94,6 +94,17 @@
 
 9. Suggest three improvements (not mentioned in this chapter) to the calculator. Implement one of them.
 
+	1. User-defined functions that take in a specified number of floating-point inputs,
+	   evaluate an expression and return a float!
+
+	   	Could re-implement sqrt() and pow() as pre-defined functions
+		Allow functions to be over-written (no "const", unlike some variables)
+
+	2. Command (statement? expression?) history from current session.
+	   User presses UP /DOWN arrows to select command from history, can rerun it!
+
+	3. Support for hexadecimal numbers
+
 */
 
 /* Grammar
