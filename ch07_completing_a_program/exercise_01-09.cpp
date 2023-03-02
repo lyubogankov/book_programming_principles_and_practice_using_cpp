@@ -51,10 +51,37 @@
    Have the calculator print out some instructions for how to use the calculator if the user presses the H key (both upper- and lowercase).
 7. Change the q and h commands to be quit and help, respectively.
 
+	Done!  For #6, added additional cases to check for 'h'/'H' within Token_stream::get()
+		   and changed the logic within calculator_REPL():
+
+	```diff
+	 while (true) try {
+	 	cout << prompt;
+	 	Token t = ts.get();
+	 	while (t.kind == print) t = ts.get();
+	 	if (t.kind == quit) return;
+	- 	ts.unget(t);
+	- 	cout << result << statement() << endl;	
+	+ 	if (t.kind == help) 
+	+ 		print_help();
+	+ 	else {
+	+ 		ts.unget(t);
+	+ 		cout << result << statement() << endl;
+	+ 	}
+	 }
+	```
+
+	#7 - I removed the case for 'h'/'H' within Token_stream::get() 
+		 and implemented a check in the default case instead.
 
 
+8. The grammar in §7.6.4 is incomplete (we did warn you against overreliance on comments); 
+   it does not define sequences of statements, such as 4+4; 5–6;, 
+   and it does not incorporate the grammar changes outlined in §7.8. 
+   Fix that grammar. Also add whatever you feel is needed to that comment 
+   as the first comment of the calculator program and its overall comment.
 
-8. The grammar in §7.6.4 is incomplete (we did warn you against overreliance on comments); it does not define sequences of statements, such as 4+4; 5–6;, and it does not incorporate the grammar changes outlined in §7.8. Fix that grammar. Also add whatever you feel is needed to that comment as the first comment of the calculator program and its overall comment.
+
 
 9. Suggest three improvements (not mentioned in this chapter) to the calculator. Implement one of them.
 
@@ -68,7 +95,16 @@ Calculation:
     Print (';') (ENTER)
     Quit ('q') (quit)
 	Help (h) (H) (help)
-    Calculation Statement
+    Calculation Statement  #8 -- recursively allowing sequences of statements in the grammar.
+						   # ex: 4+4; 5-6; help 2*3; q
+						         ^^^                     Calculation -> Statement -> Expression
+								    ^                    Calculation -> Print
+									  ^^^                Calculation -> Statement -> Expression
+									     ^               Calculation -> Print
+										   ^^^^          Calculation -> Help
+										        ^^^      Calculation -> Statement -> Expression
+											        ^    Calculation -> Print
+												      ^  Calculation -> Quit
 Statement:
     Declaration
     Expression
