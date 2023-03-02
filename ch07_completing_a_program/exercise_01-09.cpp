@@ -65,8 +65,9 @@
 
 Calculation:
     Statement
-    Print (';')
-    Quit ('q')
+    Print (';') (ENTER)
+    Quit ('q') (quit)
+	Help (h) (H) (help)
     Calculation Statement
 Statement:
     Declaration
@@ -149,10 +150,10 @@ Token Token_stream::get()
 		// https://stackoverflow.com/a/15905343
 		// https://en.cppreference.com/w/cpp/io/manip/skipws
 		return Token(print);
-	// #6
-	case help:
-	case help_upper:
-		return Token(help);
+	// // #6
+	// case help:
+	// case help_upper:
+	// 	return Token(help);
 	case '(':
 	case ')':
 	case '+':
@@ -404,13 +405,13 @@ void print_help() {
 	cout << "Welcome to our simple calculator.\n"
 		 << "Please enter expressions using floating point numbers.\n"
 		 << "Valid operators:\n"
-		 << "     +     (addition)\n"
-		 << "     -     (subtraction)\n"
-		 << "     *     (multiplication)\n"
-		 << "     /     (division)\n"
-		 << "    ( )    (parentheses) \n"
-		 << " pow(b, n) (b = base, n = exponent)\n"
-		 << " sqrt(x)   (square root of non-negative x)\n"
+		 << "        +      (addition)\n"
+		 << "        -      (subtraction)\n"
+		 << "        *      (multiplication)\n"
+		 << "        /      (division)\n"
+		 << "       ( )     (parentheses) \n"
+		 << "    pow(b, n)  (b = base, n = exponent)\n"
+		 << "    sqrt(x)    (square root of non-negative x)\n"
 		 << "To evaluate expression, type '" << print << "' or press ENTER\n"
 		 << "To exit calculator, type '" << quit << "' or '" << quit_full << "'\n"
 		 << "\n";
@@ -430,9 +431,12 @@ void calculator_REPL()
 		Token t = ts.get();
 		while (t.kind == print) t = ts.get();
 		if (t.kind == quit) return;
-		if (t.kind == help) print_help();
-		ts.unget(t);
-		cout << result << statement() << endl;
+		if (t.kind == help) 
+			print_help();
+		else {
+			ts.unget(t);
+			cout << result << statement() << endl;
+		}
 	}
 	catch (runtime_error& e) {
 		cerr << e.what() << endl;
