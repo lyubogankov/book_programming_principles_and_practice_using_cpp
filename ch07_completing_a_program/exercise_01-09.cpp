@@ -100,10 +100,58 @@
 	   	Could re-implement sqrt() and pow() as pre-defined functions
 		Allow functions to be over-written (no "const", unlike some variables)
 
+		Grammar update (just showing relevant portions).  I think this covers it?
+		This way I can:
+			- Assign a function to a variable
+			- Overwrite assignment (either with a new Function, or an Expression)
+			- Execute a function by calling its variable with appropriate arguments
+
+			Declaration:
+				"let" Name '=' Expression		// or "#"
+				"const" Name '=' Expression
+		*		"let" Name '=' Function
+		*	Function:
+		*		"lambda" ArgList':' Expression
+		*	ArgList:
+		*		''								// empty
+		*		Name
+		*		ArgList',' Name
+			...
+			Primary:
+				Number
+				Variable								// existing variable bound to number, but this is checked at runtime
+				Variable '=' Expression					// existing variable, but this is checked at runtime
+		*		Variable '=' Function					// existing variable, but this is checked at runtime
+				'(' Expression ')'
+				"sqrt"'(' Expression ')'
+				"pow"'(' Expression ',' Integer ')'
+		*		Variable(ArgList)						// existing variable bound to function, but this is checked at runtime
+				'-'Primary
+				'+'Primary
+
+		Additionally, I would need to:
+			- Create a Function class
+			- Expand the Symbol_table to allow a double OR a Function class in the Vector.
+				Idk if that's possible in a single Vector, maybe I'd need two.
+
+
 	2. Command (statement? expression?) history from current session.
 	   User presses UP /DOWN arrows to select command from history, can rerun it!
 
+	   	What to define as history?  In command prompt, it's delimited by ENTER
+		Maybe build up a string of the user's input, and add it to an array when they press ENTER?
+		Then, when they press UP/DOWN arrows, display those onto std out as options?  Not sure how to overwrite small portions of screen, though.
+		Then, when they select a prior command to execute, need to feed that cin for normal processing.
+
+
 	3. Support for hexadecimal numbers
+		  Input from user:
+			a. Investigate whether cin >> float supports hex.  If so, how to enable? (Tried, not by default)
+			b. Any other solutions in c++ std lib or online?  this is not a new problem
+			c. Write my own cin -> hex parser?
+		  Conversion between dec <-> hex
+		  Implicit conversion to dec (?) if mixed representations are used?
+		  	What does Python do about this?  I can mix just find, dec is returned by default.
 
 */
 
@@ -120,8 +168,8 @@ Statement:
     Declaration
     Expression
 Declaration:
-    "let" Name '=' Expression		// or "#"
-	"const" Name '=' Expression
+    "let" Variable '=' Expression		// or "#"
+	"const" Variable '=' Expression
 Expression:
     Term
     Expression '+' Term
