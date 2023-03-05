@@ -138,44 +138,136 @@ Testing [Ch06 ex02-03 calculator program](../ch06_writing_a_program/exercise_02-
 
 ## Chapter Review Questions
 
-1. What is the purpose of working on the program after the first version works? Give a list of reasons.
+1. *What is the purpose of working on the program after the first version works? Give a list of reasons.*
 
-2. Why does 1+2; q typed into the calculator not quit after it receives an error?
 
-3. Why did we choose to make a constant character called number?
 
-4. We split main() into two separate functions. What does the new function do and why did we split main()?
 
-5. Why do we split code into multiple functions? State principles.
+2. *Why does 1+2; q typed into the calculator not quit after it receives an error?*
 
-6. What is the purpose of commenting and how should it be done?
 
-7. What does narrow_cast do?
 
-8. What is the use of symbolic constants?
 
-9. Why do we care about code layout?
+3. *Why did we choose to make a constant character called number?*
 
-10. How do we handle % (remainder) of floating-point numbers?
+	Clearer intent in code - more readable.  '8' does not carry any special meaning, and every time it was used a comment was written to explain what it signified.  The variable 'number' is well named - it explains its purpose and therefore does not require a comment.
 
-11. What does is_declared() do and how does it work?
 
-12. The input representation for let is more than one character. How is it accepted as a single token in the modified code?
+4. *We split main() into two separate functions. What does the new function do and why did we split main()?*
 
-13. What are the rules for what names can and cannot be in the calculator program?
+	It was doing two things: providing program entry point, try/catch fatal errors; calculator REPL
 
-14. Why is it a good idea to build a program incrementally?
 
-15. When do you start to test?
+5. *Why do we split code into multiple functions? State principles.*
 
-16. When do you retest?
+	So that each function handles a single logical operation.  This makes it more re-usable and increases the probability the entire function will fit on the screen (easier to read).
 
-17. How do you decide what should be a separate function?
 
-18. How do you choose names for variables and functions? List possible reasons.
+6. *What is the purpose of commenting and how should it be done?*
 
-19. Why do you add comments?
+	To express the *intent* of the code.
 
-20. What should be in comments and what should not?
 
-21. When do we consider a program finished?
+7. *What does narrow_cast do?*
+
+	From `std_lib_facilities.h`:
+	```C++
+	template<class R, class A> R narrow_cast(const A& a) {
+		R r = R(a);
+		if (A(r) != a) error(string("info loss"));
+		return r;
+	}
+	```
+	Tries to cast variable of class A to class R, and raises error if conversion lost information.
+	Used for double -> int conversion.
+
+
+8. *What is the use of symbolic constants?*
+
+	If talking about within the program - see #3.
+	If talking about within the calculator, to make it more usable.  Shortcuts for common constants, especially irrational ones, save time and can make expressions more readable.
+
+
+9. *Why do we care about code layout?*
+
+
+
+
+10. *How do we handle % (remainder) of floating-point numbers?*
+
+	We ended up going with `fmod` -- _a % b = a - b*int(a/b)_, instead of casting floats -> int.
+
+
+11. *What does is_declared() do and how does it work?*
+
+	Checks whether a variable is contained within our symbol table vector.  Loops through all elements within the vector.  If we have a match, returns true (it is contained within the vector, and is therefore a declared variable) else false.
+
+
+12. *The input representation for let is more than one character. How is it accepted as a single token in the modified code?*
+
+	Within the default case of `Token_stream::get()`, read `cin` and build up a string while certain characters are being input.  We then check whether our built-up string matches any known tokens (ex: "let").
+
+	```C++
+	default:
+		if (isalpha(ch) || ch == '_') {
+			string s;
+			s += ch;
+			while (cin.get(ch) && (isalpha(ch) || isdigit(ch) || ch == '_')) s += ch;
+			cin.unget();
+			if (s == "pow") return Token(_pow);
+			if (s == "sqrt") return Token(_sqrt);
+			if (s == quit_full) return Token(quit);
+			if (s == help_full) return Token(help);
+			if (s == var_declaration) return Token(let);
+			if (s == const_declaration) return Token(constant);
+			return Token(name, s);
+	```
+
+
+13. *What are the rules for what names can and cannot be in the calculator program?*
+
+	Expressed as grammar, in (Python) regular-expression syntax:
+	```
+	Variable
+		[a-zA-Z][a-zA-Z0-9]*  // (from drill)
+		[a-zA-Z]\w*			  // (#1 -- allow underscores )
+	```
+
+
+14. *Why is it a good idea to build a program incrementally?*
+
+
+
+
+15. *When do you start to test?*
+
+
+
+
+16. *When do you retest?*
+
+
+
+
+17. *How do you decide what should be a separate function?*
+
+
+
+
+18. *How do you choose names for variables and functions? List possible reasons.*
+
+
+
+
+19. *Why do you add comments?*
+
+
+
+
+20. *What should be in comments and what should not?*
+
+
+
+
+21. *When do we consider a program finished?*
+
