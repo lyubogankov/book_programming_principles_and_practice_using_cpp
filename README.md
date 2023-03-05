@@ -39,3 +39,8 @@ Basic commands:
 #### Textbook resources
 - https://www.stroustrup.com/programming.html
 - https://www.stroustrup.com/programming_support.html
+
+#### I found other people that have gone on a similar journey -- can cross-check solutions with them!
+
+- https://github.com/bewuethr/stroustrup-ppp
+- https://github.com/Chrinkus/stroustrup-ppp
