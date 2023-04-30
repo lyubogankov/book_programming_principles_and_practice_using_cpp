@@ -9,6 +9,9 @@ g++ -o [exe_name].exe [file].cpp   // if particular name is desired
 g++ [file].cpp                     // default executable name 'a.out'
 ```
 
+Can also specify multiple files if they're part of the same project!
+
+
 #### Compilation using a specific C++ standard
 ```
 g++ [file].cpp -std=c++11
