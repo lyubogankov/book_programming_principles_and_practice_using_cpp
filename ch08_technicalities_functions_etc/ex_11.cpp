@@ -6,6 +6,11 @@
     
     Either return a struct containing the results or pass them back through reference arguments.
     Which of the two ways of returning several result values do you prefer and why?
+
+    > I like returning a struct better.  IMO it more clearly defines the interface between function / caller.
+      Updating via reference feels harder to track/debug for me.
+      Getting a struct in return saves user from having to instantiate / pass 4 variables to the function to get the return values;
+      with the returned struct, member variables can be accessed easily using dot notation.
 */
 
 #include <algorithm>
