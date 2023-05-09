@@ -32,6 +32,7 @@
     Also write a function that will return a vector that contains the names of all Patrons who owe fees.
 */
 
+#include <cctype>   // for isalnum / isdigit
 #include <iostream>
 #include <string>
 #include <vector>
@@ -62,6 +63,17 @@ class Book {
 };
 
 bool is_valid_isbn(string isbn) {
+    int hyphen_count = 0;
+    for (int i=0; i<isbn.size(); i++){
+        if (isbn[i] == '-') {
+            hyphen_count++;
+            continue;
+        }
+        // first three clauses: must only be digits
+        //                                          // last clause: either digit or letter (alphanumeric)
+        if ((hyphen_count < 3 && !isdigit(isbn[i])) || (hyphen_count == 3 && !isalnum(isbn[i])))
+            return false;
+    }
     return true;
 }
 
@@ -74,6 +86,7 @@ Book::Book(string isbn, string title, string author, int copyright_year)
         throw InvalidBook();
     }
     _copyright_year = copyright_year;
+
     // validate isbn
     if (!is_valid_isbn(isbn)) {
         cout << "Book is invalid due to isbn.\n";
@@ -93,12 +106,15 @@ void Book::check_in() {
 
 int main() {
 
+    // create a valid Book
     Book b1 = Book(
-        "isbn",
+        "0-0-0-0",
         "Programming Principles and Practice Using C++",
         "Bjarne Stroustrup",
         2014
     );
+
+    // validate checking in/out
     cout << "Checked out? " << b1.is_checked_out() << "\n";
     cout << "Checking out...\n";
     b1.check_out();
@@ -107,6 +123,7 @@ int main() {
     b1.check_in();
     cout << "Checked out? " << b1.is_checked_out() << "\n\n";
     
+    // validate checking in/out errors
     try {
         b1.check_in();
     } catch (Book::InvalidOperation) {
@@ -120,8 +137,15 @@ int main() {
         cout << "Error - can't check out a book that isn't checked in.\n\n";
     }
 
+    // validate invalid copyright year book
     try {
-        Book badbook = Book("isbn", "title", "author", -15);
+        Book badbook = Book("0-0-A-A", "title", "author", -15);
+    } catch (Book::InvalidBook) {
+        cout << "Error initializing `badbook`\n";
+    }
+    // validate invalid isbn book
+    try {
+        Book badbook = Book("0-0-A-A", "title", "author", 2003);
     } catch (Book::InvalidBook) {
         cout << "Error initializing `badbook`\n";
     }
