@@ -14,8 +14,8 @@
     - Have a << print out the title, author, and ISBN on separate lines.
 
 7.  Create an enumerated type for the Book class called Genre.
-    Have the types be fiction, nonfiction, periodical, biography, and children.
-    Give each book a Genre and make appropriate changes to the Book constructor and member functions.
+    - Have the types be fiction, nonfiction, periodical, biography, and children.
+    - Give each book a Genre and make appropriate changes to the Book constructor and member functions.
 
 8.  Create a Patron class for the library.
     The class will have a user’s name, library card number, and library fees (if owed).
@@ -70,7 +70,6 @@ class Book {
         Genre _genre;
         bool _is_checked_out = false;
 };
-
 bool is_valid_isbn(string isbn) {
     int hyphen_count = 0;
     for (int i=0; i<isbn.size(); i++){
@@ -85,7 +84,6 @@ bool is_valid_isbn(string isbn) {
     }
     return true;
 }
-
 // Q: Is there an idiomatic way to reuse constructor code between calls?
 //    Constructor w/ genre's body is same as constructor w/o genre.
 Book::Book(string isbn, string title, string author, int copyright_year) 
@@ -130,12 +128,43 @@ void Book::check_in() {
     if (_is_checked_out == false) throw InvalidOperation();
     _is_checked_out = false;
 }
-
-// ex06 - operators
 bool operator==(const Book& b1, const Book& b2) { return b1.isbn() == b2.isbn(); }
 bool operator!=(const Book& b1, const Book& b2) { return !(b1 == b2); }
 ostream& operator<<(ostream& os, const Book& b) {
     return os << b.title() << "\n" << b.author() << "\n" << b.isbn() << "\n";
+}
+
+class Patron {
+    public:
+        // Constructor(s)
+        Patron(string name, string librarycardnum);
+        // Accessors
+        string name() const { return _name; }
+        string librarycardnum() const { return _librarycardnum; }
+        double fee_balance() const { return _fees_owed; }
+        // Helper
+        bool owes_fees() const { return (_fees_owed > 0.0); }
+        void change_fee_balance(double delta) { _fees_owed += delta; } // fee = +, payment = -
+        class InvalidLibraryCardNum {};
+    private:
+        string _name;
+        string _librarycardnum;
+        double _fees_owed = 0.0; // all patrons start out with no fees
+};
+// storing library card as string to capture leading zeros!
+bool is_valid_librarycardnum(string librarycardnum) {
+    for (int i=0; i< librarycardnum.size(); i++) {
+        if (!isdigit(librarycardnum[i]))
+            return false;
+    }
+    return true;
+}
+Patron::Patron(string name, string librarycardnum)
+    : _name {name}
+{
+    if (!is_valid_librarycardnum(librarycardnum))
+        throw Patron::InvalidLibraryCardNum();
+    _librarycardnum = librarycardnum;
 }
 
 void test_ex05() {
@@ -213,7 +242,20 @@ void test_ex07() {
          << "b3 genre: " << b3.genre() << "\n\n";
 }
 void test_ex08() {
+    cout << "\n"
+         << "---------------- EX 07 ----"
+         << "\n\n";
+    Patron p {"Lyubo", "123456789"};
+    cout << p.name() << "\n" << p.librarycardnum() << "\n"
+         << "Owes fees? " << p.owes_fees() << " (fee balance: $" << p.fee_balance() << ")\n\n";
 
+    cout << p.name() << " has an overdue book... charging $1.00 fee.\n";
+    p.change_fee_balance(1.00);
+    cout << "Owes fees? " << p.owes_fees() << " (fee balance: $" << p.fee_balance() << ")\n\n";
+
+    cout << p.name() << " has paid the fee.\n";
+    p.change_fee_balance(-1.00);
+    cout << "Owes fees? " << p.owes_fees() << " (fee balance: $" << p.fee_balance() << ")\n\n";
 }
 void test_ex09() {
 
