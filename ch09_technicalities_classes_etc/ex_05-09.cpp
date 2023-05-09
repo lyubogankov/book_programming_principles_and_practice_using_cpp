@@ -38,15 +38,23 @@
 #include <vector>
 using namespace std;
 
+// I'd prefer this was a dictionary / map, so that I could use the number to look up the label.
+// This is fine for internal representation, but would not be meaningful to a user if printed to them,
+//   as they'd see an integer code without any lookup table.
+enum class Genre { unassigned, fiction, nonfiction, periodical, biography, childrens };
+ostream& operator<<(ostream& os, const Genre& g) { return os << int(g); }
+
 class Book {
     public:
         // constructor(s)
-        Book(string _isbn, string _title, string _author, int _copyright_year);
+        Book(string isbn, string title, string author, int copyright_year); // for ex05/06
+        Book(string isbn, string title, string author, int copyright_year, Genre genre); // new for ex07
         // accessors
         string isbn() const { return _isbn; }
         string title() const { return _title; }
         string author() const { return _author; }
         int copyright_year() const { return _copyright_year; }
+        Genre genre() const { return _genre; }
         bool is_checked_out() const { return _is_checked_out; }
         // helper functions
         void check_out();
@@ -59,6 +67,7 @@ class Book {
         string _title;
         string _author;
         int _copyright_year;
+        Genre _genre;
         bool _is_checked_out = false;
 };
 
@@ -77,8 +86,27 @@ bool is_valid_isbn(string isbn) {
     return true;
 }
 
+// Q: Is there an idiomatic way to reuse constructor code between calls?
+//    Constructor w/ genre's body is same as constructor w/o genre.
 Book::Book(string isbn, string title, string author, int copyright_year) 
-    : _title {title}, _author {author}
+    : _title {title}, _author {author}, _genre{Genre::unassigned} // default
+{
+    // validate copyright year
+    if (copyright_year < 0 || copyright_year > 2023) {
+        cout << "Book is invalid due to copyright year.\n";
+        throw InvalidBook();
+    }
+    _copyright_year = copyright_year;
+
+    // validate isbn
+    if (!is_valid_isbn(isbn)) {
+        cout << "Book is invalid due to isbn.\n";
+        throw InvalidBook();
+    }
+    _isbn = isbn;
+}
+Book::Book(string isbn, string title, string author, int copyright_year, Genre genre) 
+    : _title {title}, _author {author}, _genre {genre}
 {
     // validate copyright year
     if (copyright_year < 0 || copyright_year > 2023) {
@@ -110,9 +138,10 @@ ostream& operator<<(ostream& os, const Book& b) {
     return os << b.title() << "\n" << b.author() << "\n" << b.isbn() << "\n";
 }
 
-int main() {
-
-    // EX05
+void test_ex05() {
+    cout << "\n"
+         << "---------------- EX 05 ----"
+         << "\n\n";
     // create a valid Book
     Book b1 = Book(
         "0-0-0-0",
@@ -156,16 +185,47 @@ int main() {
     } catch (Book::InvalidBook) {
         cout << "Error initializing `badbook`\n";
     }
-
-    // EX06
+}
+void test_ex06() {
+    cout << "\n"
+         << "---------------- EX 06 ----"
+         << "\n\n";
+    Book b1 = {"0-0-0-0", "Programming Principles and Practice Using C++", "Bjarne Stroustrup", 2014};
     Book b2 {"1-1-1-B", "Fluent Python (2nd ed)", "Luciano Ramahlo", 2021};
     Book b3 ("1-1-1-B", "Copycat Chronicles", "Copy Cat", 1998);
-    cout << "\n" << b1 << "\n" << b2 << "\n" << b3 << "\n\n";
-
-    cout << "b1 == b2: " << (b1 == b2) << "\n"
+    cout << b1 << "\n" << b2 << "\n" << b3 << "\n"
+         << "\n"
+         << "b1 == b2: " << (b1 == b2) << "\n"
          << "b1 != b2: " << (b1 != b2) << "\n"
          << "b2 == b3: " << (b2 == b3) << "\n"
-         << "b2 != b3: " << (b2 != b3) << "\n\n";
+         << "b2 != b3: " << (b2 != b3) << "\n";
+}
+void test_ex07() {
+    cout << "\n"
+         << "---------------- EX 07 ----"
+         << "\n\n";
+    Book b1 = {"0-0-0-0", "Programming Principles and Practice Using C++", "Bjarne Stroustrup", 2014};
+    Book b2 {"1-1-1-B", "Fluent Python (2nd ed)", "Luciano Ramahlo", 2021, Genre::nonfiction};
+    Book b3 ("1-1-1-B", "Copycat Chronicles", "Copy Cat", 1998, Genre::childrens);
+
+    cout << "b1 genre: " << b1.genre() << "\n"
+         << "b2 genre: " << b2.genre() << "\n"
+         << "b3 genre: " << b3.genre() << "\n\n";
+}
+void test_ex08() {
+
+}
+void test_ex09() {
+
+}
+
+int main() {
+
+    test_ex05();
+    test_ex06();
+    test_ex07();
+    test_ex08();
+    test_ex09();
 
     return 0;
 }
