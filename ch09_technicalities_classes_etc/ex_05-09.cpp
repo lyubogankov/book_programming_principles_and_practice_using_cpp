@@ -69,12 +69,16 @@ Book::Book(string isbn, string title, string author, int copyright_year)
     : _title {title}, _author {author}
 {
     // validate copyright year
-    if (_copyright_year < 0 || _copyright_year > 2023)
+    if (copyright_year < 0 || copyright_year > 2023) {
+        cout << "Book is invalid due to copyright year.\n";
         throw InvalidBook();
-    copyright_year = _copyright_year;
+    }
+    _copyright_year = copyright_year;
     // validate isbn
-    if (!is_valid_isbn(isbn))
+    if (!is_valid_isbn(isbn)) {
+        cout << "Book is invalid due to isbn.\n";
         throw InvalidBook();
+    }
     _isbn = isbn;
 }
 void Book::check_out() {
@@ -95,6 +99,26 @@ int main() {
         "Bjarne Stroustrup",
         2014
     );
+    cout << "Checked out? " << b1.is_checked_out() << "\n";
+    cout << "Checking out...\n";
+    b1.check_out();
+    cout << "Checked out? " << b1.is_checked_out() << "\n";
+    cout << "Checking in...\n";
+    b1.check_in();
+    cout << "Checked out? " << b1.is_checked_out() << "\n\n";
+    
+    try {
+        b1.check_in();
+    } catch (Book::InvalidOperation) {
+        cout << "Error - can't check in a book that isn't checked out.\n";
+    }
+    cout << "Checking out...\n";
+    b1.check_out();
+    try {
+        b1.check_out();
+    } catch (Book::InvalidOperation) {
+        cout << "Error - can't check out a book that isn't checked in.\n\n";
+    }
 
     try {
         Book badbook = Book("isbn", "title", "author", -15);
