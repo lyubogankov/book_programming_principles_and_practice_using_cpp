@@ -18,18 +18,18 @@
     - Give each book a Genre and make appropriate changes to the Book constructor and member functions.
 
 8.  Create a Patron class for the library.
-    The class will have a user’s name, library card number, and library fees (if owed).
-    Have functions that access this data, as well as a function to set the fee of the user.
-    Have a helper function that returns a Boolean (bool) depending on whether or not the user owes a fee.
+    - The class will have a user’s name, library card number, and library fees (if owed).
+    - Have functions that access this data, as well as a function to set the fee of the user.
+    - Have a helper function that returns a Boolean (bool) depending on whether or not the user owes a fee.
 
 9.  Create a Library class.
-    Include vectors of Books and Patrons.
-    Include a struct called Transaction. Have it include a Book, a Patron, and a Date from the chapter.
-    Make a vector of Transactions. Create functions to add books to the library, add patrons to the library, and check out books.
+    - Include vectors of Books and Patrons.
+    - Include a struct called Transaction. Have it include a Book, a Patron, and a Date from the chapter.
+    - Make a vector of Transactions. Create functions to add books to the library, add patrons to the library, and check out books.
     Whenever a user checks out a book, have the library make sure that both the user and the book are in the library.
     If they aren’t, report an error. Then check to make sure that the user owes no fees.
     If the user does, report an error. If not, create a Transaction, and place it in the vector of Transactions.
-    Also write a function that will return a vector that contains the names of all Patrons who owe fees.
+    - Also write a function that will return a vector that contains the names of all Patrons who owe fees.
 */
 
 #include <cctype>   // for isalnum / isdigit
@@ -37,6 +37,9 @@
 #include <string>
 #include <vector>
 using namespace std;
+
+#include "Date_Ch09.h" // for ex09
+
 
 // I'd prefer this was a dictionary / map, so that I could use the number to look up the label.
 // This is fine for internal representation, but would not be meaningful to a user if printed to them,
@@ -167,6 +170,22 @@ Patron::Patron(string name, string librarycardnum)
     _librarycardnum = librarycardnum;
 }
 
+class Library {
+    public:
+        struct Transaction { Book b; Patron p; Date d; };
+        void add_new_book(Book b);
+        void add_new_patron(Patron p);
+        void check_out_book(Book b, Patron p, Date d);
+        void check_in_book(Book b, Patron p, Date d);
+        vector<Patron> query_fee_owing_patrons();
+        // for throwing errors
+        class InvalidTransaction {};
+    private:
+        vector<Book> books;
+        vector<Patron> patrons;
+        vector<Transaction> transactions;
+};
+
 void test_ex05() {
     cout << "\n"
          << "---------------- EX 05 ----"
@@ -243,7 +262,7 @@ void test_ex07() {
 }
 void test_ex08() {
     cout << "\n"
-         << "---------------- EX 07 ----"
+         << "---------------- EX 08 ----"
          << "\n\n";
     Patron p {"Lyubo", "123456789"};
     cout << p.name() << "\n" << p.librarycardnum() << "\n"
@@ -258,7 +277,9 @@ void test_ex08() {
     cout << "Owes fees? " << p.owes_fees() << " (fee balance: $" << p.fee_balance() << ")\n\n";
 }
 void test_ex09() {
-
+    cout << "\n"
+         << "---------------- EX 09 ----"
+         << "\n\n";
 }
 
 int main() {
