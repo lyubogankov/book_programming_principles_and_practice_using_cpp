@@ -9,9 +9,9 @@
         for example, accept ISBNs only of the form n-n-n-x where n is an integer and x is a digit or a letter. Store an ISBN as a string.
 
 6.  Add operators for the Book class.
-    Have the == operator check whether the ISBN numbers are the same for two books.
-    Have != also compare the ISBN numbers.
-    Have a << print out the title, author, and ISBN on separate lines.
+    - Have the == operator check whether the ISBN numbers are the same for two books.
+    - Have != also compare the ISBN numbers.
+    - Have a << print out the title, author, and ISBN on separate lines.
 
 7.  Create an enumerated type for the Book class called Genre.
     Have the types be fiction, nonfiction, periodical, biography, and children.
@@ -43,11 +43,11 @@ class Book {
         // constructor(s)
         Book(string _isbn, string _title, string _author, int _copyright_year);
         // accessors
-        string isbn() { return _isbn; }
-        string title() { return _title; }
-        string author() { return _author; }
-        int copyright_year() { return _copyright_year; }
-        bool is_checked_out() { return _is_checked_out; }
+        string isbn() const { return _isbn; }
+        string title() const { return _title; }
+        string author() const { return _author; }
+        int copyright_year() const { return _copyright_year; }
+        bool is_checked_out() const { return _is_checked_out; }
         // helper functions
         void check_out();
         void check_in();
@@ -103,9 +103,16 @@ void Book::check_in() {
     _is_checked_out = false;
 }
 
+// ex06 - operators
+bool operator==(const Book& b1, const Book& b2) { return b1.isbn() == b2.isbn(); }
+bool operator!=(const Book& b1, const Book& b2) { return !(b1 == b2); }
+ostream& operator<<(ostream& os, const Book& b) {
+    return os << b.title() << "\n" << b.author() << "\n" << b.isbn() << "\n";
+}
 
 int main() {
 
+    // EX05
     // create a valid Book
     Book b1 = Book(
         "0-0-0-0",
@@ -149,6 +156,16 @@ int main() {
     } catch (Book::InvalidBook) {
         cout << "Error initializing `badbook`\n";
     }
+
+    // EX06
+    Book b2 {"1-1-1-B", "Fluent Python (2nd ed)", "Luciano Ramahlo", 2021};
+    Book b3 ("1-1-1-B", "Copycat Chronicles", "Copy Cat", 1998);
+    cout << "\n" << b1 << "\n" << b2 << "\n" << b3 << "\n\n";
+
+    cout << "b1 == b2: " << (b1 == b2) << "\n"
+         << "b1 != b2: " << (b1 != b2) << "\n"
+         << "b2 == b3: " << (b2 == b3) << "\n"
+         << "b2 != b3: " << (b2 != b3) << "\n\n";
 
     return 0;
 }
