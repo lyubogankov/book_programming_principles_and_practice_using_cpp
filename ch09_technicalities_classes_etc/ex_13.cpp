@@ -122,7 +122,7 @@ int main() {
 
 
 /*
-Notes:
+NOTES
 
 Design choice: all fractions stored as reduced.  Operations automatically reduce fractions.
 
