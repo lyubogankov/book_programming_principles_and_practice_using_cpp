@@ -172,15 +172,17 @@ Patron::Patron(string name, string librarycardnum)
 
 class Library {
     public:
-        struct Transaction { Book b; Patron p; Date d; };
-        void add_new_book(Book b);
-        void add_new_patron(Patron p);
+        Library() {}; // all vectors start empty by default, so no need for constructor.
+        void add_new_book(Book b) { books.push_back(b); }
+        void add_new_patron(Patron p) { patrons.push_back(p); }
         void check_out_book(Book b, Patron p, Date d);
         void check_in_book(Book b, Patron p, Date d);
         vector<Patron> query_fee_owing_patrons();
         // for throwing errors
         class InvalidTransaction {};
     private:
+        // for internal record-keeping (I wonder whether I can have a private struct defined?? let's try!)
+        struct Transaction { Book b; Patron p; Date d; };
         vector<Book> books;
         vector<Patron> patrons;
         vector<Transaction> transactions;
