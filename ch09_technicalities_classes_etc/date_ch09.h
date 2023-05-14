@@ -1,3 +1,6 @@
+#include <iostream>
+using namespace std;
+
 enum class Month { jan=1, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec };
 class Date {
     public:
@@ -12,3 +15,5 @@ class Date {
         int d;
 };
 class InvalidDate {};
+
+ostream& operator<<(ostream& os, const Date& d);
