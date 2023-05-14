@@ -364,10 +364,31 @@ void test_ex09() {
          << "\n\n";
 
     // create a library
+    Library mylibrary {};
+
     // create 3 books,   add 2 to library
+    Book b1 {"0-0-0-0", "Programming Principles and Practice Using C++", "Bjarne Stroustrup", 2014};
+    Book b2 {"1-1-1-B", "Fluent Python (2nd ed)", "Luciano Ramahlo", 2021, Genre::nonfiction};
+    Book b3 ("1-1-1-C", "Copycat Chronicles", "Copy Cat", 1998, Genre::childrens);
+    mylibrary.add_new_book(b1);
+    mylibrary.add_new_book(b2);
+
     // create 3 patrons, add 2 to library
+    Patron p1 {"Lyubo", "123456789"};
+    Patron p2 {"AlsoLyubo", "987654321"};
+    Patron p3 {"NotLyubo", "192837465"};
+    mylibrary.add_new_patron(p1);
+    mylibrary.add_new_patron(p2);
+
     // p1 checkout b1 (should succeed)
+    Date d1 {2023, 05, 12};
+    mylibrary.check_out_book(b1, p1, d1);
     // p2 checkout b1 (should fail - b1 already checked out to p1)
+    try {
+        mylibrary.check_out_book(b1, p2, d1);
+    } catch (Library::InvalidTransaction) {
+        cout << "    couldn't check out d1 to p2, it's already checked out!\n";
+    }
     // p3 checkout b2 (should fail - p3 not in library)    
     // p2 checkout b3 (should fail - b3 not in library)
 
