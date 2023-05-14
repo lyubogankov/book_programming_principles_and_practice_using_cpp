@@ -47,3 +47,7 @@ Basic commands:
 
 - https://github.com/bewuethr/stroustrup-ppp
 - https://github.com/Chrinkus/stroustrup-ppp
+
+#### Using `g++` on WIndows
+
+I found [MinGW-w64](https://www.mingw-w64.org/) and installed the [WinLibs standalone build](https://winlibs.com/).  I installed the "UCRT" version (between UCRT and MSVCRT) and permanently added the path to the `bin` folder to my `PATH` environment variable, and from there can use `g++` like on Linux!
