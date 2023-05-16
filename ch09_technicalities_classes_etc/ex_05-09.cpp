@@ -226,8 +226,8 @@ bool operator==(const Patron& p1, const Patron& p2) {
 class Library {
     public:
         Library() {}; // all vectors start empty by default, so no need for constructor.
-        void add_new_book(Book& b) { books.push_back(b); }
-        void add_new_patron(Patron& p) { patrons.push_back(p); }
+        void add_new_book(Book& b) { books.push_back(&b); }
+        void add_new_patron(Patron& p) { patrons.push_back(&p); }
         void check_out_book(Book& b, Patron& p, Date& d);
         void check_in_book(Book& b, Patron& p, Date& d);
         bool book_in_library(Book& b);
@@ -238,19 +238,19 @@ class Library {
     private:
         // for internal record-keeping (I wonder whether I can have a private struct defined?? let's try!)
         struct Transaction { Book& b; Patron& p; Date& d; };
-        vector<Book> books;
-        vector<Patron> patrons;
+        vector<Book*> books;
+        vector<Patron*> patrons;
         vector<Transaction> transactions;
 };
 bool Library::book_in_library(Book& b) {
-    for ( Book _b : books )
-        if (_b == b)
+    for ( Book* bp : books )
+        if (*bp == b)
             return true;
     return false;
 }
 bool Library::patron_in_library(Patron& p) {
-    for ( Patron _p : patrons )
-        if (_p == p)
+    for ( Patron* pp : patrons )
+        if (*pp == p)
             return true;
     return false;
 }
@@ -273,10 +273,9 @@ void Library::check_in_book(Book& b, Patron& p, Date& d) {
 }
 vector<string> Library::query_fee_owing_patrons() {
     vector<string> debtornames;
-    for ( Patron p : patrons) {
-        cout << "    " << p.name() << "  " << p.fee_balance() << "\n";
-        if (p.owes_fees()) {
-            debtornames.push_back(p.name());
+    for ( Patron* pp : patrons) {
+        if ((*pp).owes_fees()) {
+            debtornames.push_back((*pp).name());
         }
     }
     return debtornames;
@@ -402,7 +401,7 @@ void test_ex09() {
     try {
         mylibrary.check_out_book(b1, p2, d1);
     } catch (Library::InvalidTransaction) {
-        cout << "    couldn't check out b1 to p2, it's already checked out!\n";
+        cout << "    couldn't checkout b1 to p2, it's already checked out!\n";
     }
     // p3 checkout b2 (should fail - p3 not in library)
     try {
@@ -428,10 +427,25 @@ void test_ex09() {
     // query patrons with fee - should have p1 inside
     vector<string> f2 = mylibrary.query_fee_owing_patrons();
     cout << "Number of patrons that owe fees: " << f2.size() << "\n";
+    for (string n : f2)
+        cout << "    debtor: " << n << "\n";
     
     // p1 checkout b2 (should fail - p1 owes fees)
+    try {
+        mylibrary.check_out_book(b2, p1, d1);
+    } catch (Library::InvalidTransaction) {
+        cout << "    couldn't checkout b2 to p1, p1 owes fees\n";
+    }
     // p1 checkin b1  (should succeed)
+    Date d2 {2023, Month::may, 15};
+    mylibrary.check_in_book(b1, p1, d2);
+    cout << "    p1 checked in b1!\n";
     // p1 checkin b1  (should fail - already checked in)
+    try {
+        mylibrary.check_in_book(b1, p1, d2);
+    } catch (Library::InvalidTransaction) {
+        cout << "    p1 could not check b1 back in, it's no longer checked out to them!\n";
+    }
 }
 
 int main() {
