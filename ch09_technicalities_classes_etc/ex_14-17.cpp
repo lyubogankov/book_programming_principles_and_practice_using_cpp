@@ -13,7 +13,7 @@
     you provide a conversion table defining the conversion factor between U.S. dollars (USD) and Danish kroner (DKK).
 
 16. Define an input operator (>>) that reads monetary amounts with currency denominations, such as USD1.23 and DKK5.00, into a Money variable.
-    Also define a corresponding output operator (>>).
+    Also define a corresponding output operator (<<).
 
 Discussion qs
 -------------
@@ -30,30 +30,37 @@ using namespace std;
 
 class Money {
     public:
+        // constructors
         Money(string denomination, double amount);
         // // generic term = ? whole units vs fractions/remainder as hundredth (multiplied by 100)
         // Money(string denomination, int dollars, int cents);
         Money(string denomination, int wholes, int hundredths);
-        string denomination() { return _denomination; }
-        int wholes() { return _hundredths / 100; }
-        int hundredths() { return _hundredths % 100; }
+        
+        // accessors
+        string denomination() const { return _denomination; }
+        int wholes() const { return _hundredths / 100; }
+        int hundredths() const { return _hundredths % 100; }
+        int as_hundredths() const { return _hundredths; }
     private:
         long int _hundredths {0};
         string _denomination;
 };
-Money::Money(string denomination, int wholes, int hundredths) :
-    _denomination {denomination},
-    _hundredths { hundredths + wholes*100 }
-{}
-Money::Money(string denomination, double amount) : _denomination {denomination} 
-{
+int fourth_fifths_round(double unrounded) {
     // odd behavior: previously had floor(amount*100), but that consistently chopped off a whole cent.
     //               I also tested int(amount*100), and it had the same effect.
-    _hundredths += int(amount*1000)/ 10; // whole + hundredths
-    // "4/5 rounding" rule for fractional cents
-    if ((int(amount*1000) % 10) >= 5)
-        _hundredths += 1;
+    int h = int(unrounded*1000)/ 10;         // whole + hundredths
+    if ((int(unrounded*1000) % 10) >= 5)     // 4/5 rounding rule
+        h += 1;
+    return h;
 }
+Money::Money(string denomination, int wholes, int hundredths) :
+    _denomination {denomination},
+    _hundredths { wholes*100 + hundredths }
+{}
+Money::Money(string denomination, double amount) : 
+    _denomination {denomination},
+    _hundredths {fourth_fifths_round(amount)}
+{}
 
 ostream& operator<<(ostream& os, Money m) {
     // https://stackoverflow.com/a/1714538
@@ -61,6 +68,25 @@ ostream& operator<<(ostream& os, Money m) {
               << setfill('0') << setw(2)    // want leading zero!
               << m.hundredths()
               << setfill(' ');                // reset to default, bc apparently it's persistent
+}
+
+Money operator+(const Money& m1, const Money& m2) {
+
+}
+Money operator-(const Money& m1, const Money& m2) {
+
+}
+Money operator*(const Money& m, const int n) {
+
+}
+Money operator*(const int n, const Money& m) { return m*n; }
+
+// not defining n / $, as that doesn't yield Money (it returns something per unit currency)
+Money operator/(const Money& m, const int n) {
+    return Money(
+        m.denomination(), 
+        fourth_fifths_round(double(m.as_hundredths()) / n)
+    );
 }
 
 int main() {
