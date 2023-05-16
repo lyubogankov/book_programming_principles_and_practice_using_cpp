@@ -31,6 +31,9 @@
         If they aren’t, report an error. Then check to make sure that the user owes no fees.
         If the user does, report an error. If not, create a Transaction, and place it in the vector of Transactions.
     - Also write a function that will return a vector that contains the names of all Patrons who owe fees.
+
+    Issue with my current implementation!
+    I'm defining the books/patrons e
 */
 
 #include <cctype>   // for isalnum / isdigit
@@ -172,7 +175,7 @@ void Book::check_in() {
 bool operator==(const Book& b1, const Book& b2) { return b1.isbn() == b2.isbn(); }
 bool operator!=(const Book& b1, const Book& b2) { return !(b1 == b2); }
 ostream& operator<<(ostream& os, const Book& b) {
-    return os << b.title() << "\n" << b.author() << "\n" << b.isbn() << "\n";
+    return os << b.title() << "   " << b.author() << "   " << b.isbn();
 }
 
 class Patron {
@@ -214,44 +217,44 @@ bool operator==(const Patron& p1, const Patron& p2) {
 class Library {
     public:
         Library() {}; // all vectors start empty by default, so no need for constructor.
-        void add_new_book(Book b) { books.push_back(b); }
-        void add_new_patron(Patron p) { patrons.push_back(p); }
-        void check_out_book(Book b, Patron p, Date d);
-        void check_in_book(Book b, Patron p, Date d);
-        bool book_in_library(Book b);
-        bool patron_in_library(Patron p);
+        void add_new_book(Book& b) { books.push_back(b); }
+        void add_new_patron(Patron& p) { patrons.push_back(p); }
+        void check_out_book(Book& b, Patron& p, Date& d);
+        void check_in_book(Book& b, Patron& p, Date& d);
+        bool book_in_library(Book& b);
+        bool patron_in_library(Patron& p);
         vector<string> query_fee_owing_patrons();
         // for throwing errors
         class InvalidTransaction {};
     private:
         // for internal record-keeping (I wonder whether I can have a private struct defined?? let's try!)
-        struct Transaction { Book b; Patron p; Date d; };
+        struct Transaction { Book& b; Patron& p; Date& d; };
         vector<Book> books;
         vector<Patron> patrons;
         vector<Transaction> transactions;
 };
-bool Library::book_in_library(Book b) {
+bool Library::book_in_library(Book& b) {
     for ( Book _b : books )
         if (_b == b)
             return true;
     return false;
 }
-bool Library::patron_in_library(Patron p) {
+bool Library::patron_in_library(Patron& p) {
     for ( Patron _p : patrons )
         if (_p == p)
             return true;
     return false;
 }
-void Library::check_out_book(Book b, Patron p, Date d) {
-    if (!book_in_library(b) || !patron_in_library(p) || p.owes_fees())
+void Library::check_out_book(Book& b, Patron& p, Date& d) {
+    if (!book_in_library(b) || !patron_in_library(p) || b.is_checked_out() || p.owes_fees())
         throw InvalidTransaction();
     b.check_out();
     Transaction t {b, p, d};
     transactions.push_back(t);
     cout << "    patron (" << p.name() << ") checked out book (" << b << ") [" << d << "]\n";
 }
-void Library::check_in_book(Book b, Patron p, Date d) {
-    if (!book_in_library(b) || !patron_in_library(p) || p.owes_fees())
+void Library::check_in_book(Book& b, Patron& p, Date& d) {
+    if (!book_in_library(b) || !patron_in_library(p) || !b.is_checked_out())
         throw InvalidTransaction();
     // could additionally validate that this date >= check-out date (for same book/patron)
     b.check_in();
@@ -261,9 +264,12 @@ void Library::check_in_book(Book b, Patron p, Date d) {
 }
 vector<string> Library::query_fee_owing_patrons() {
     vector<string> debtornames;
-    for ( Patron p : patrons)
-        if (p.owes_fees())
+    for ( Patron p : patrons) {
+        cout << "    " << p.name() << "  " << p.fee_balance() << "\n";
+        if (p.owes_fees()) {
             debtornames.push_back(p.name());
+        }
+    }
     return debtornames;
 }
 
@@ -381,20 +387,38 @@ void test_ex09() {
     mylibrary.add_new_patron(p2);
 
     // p1 checkout b1 (should succeed)
-    Date d1 {2023, 05, 12};
+    Date d1 {2023, Month::may, 12};
     mylibrary.check_out_book(b1, p1, d1);
     // p2 checkout b1 (should fail - b1 already checked out to p1)
     try {
         mylibrary.check_out_book(b1, p2, d1);
     } catch (Library::InvalidTransaction) {
-        cout << "    couldn't check out d1 to p2, it's already checked out!\n";
+        cout << "    couldn't check out b1 to p2, it's already checked out!\n";
     }
-    // p3 checkout b2 (should fail - p3 not in library)    
+    // p3 checkout b2 (should fail - p3 not in library)
+    try {
+        mylibrary.check_out_book(b2, p3, d1);
+    } catch (Library::InvalidTransaction) {
+        cout << "    couldn't checkout b2 to p3, p3 isn't a library member!\n";
+    }
     // p2 checkout b3 (should fail - b3 not in library)
+    try {
+        mylibrary.check_out_book(b3, p2, d1);
+    } catch (Library::InvalidTransaction) {
+        cout << "    couldn't checkout b3 to p2, b3 isn't a library book!\n";
+    }
 
     // query patrons with fee - should be empty
+    vector<string> f = mylibrary.query_fee_owing_patrons();
+    cout << "Number of patrons that owe fees: " << f.size() << "\n";
     // p1 gets a fee (let's say they keep b1 for too long)
+    cout << "p1 balance: " << p1.fee_balance() << "\n";
+    p1.change_fee_balance(1.0);
+    cout << "p1 now owes library $1\n";
+    cout << "p1 balance: " << p1.fee_balance() << "\n";
     // query patrons with fee - should have p1 inside
+    vector<string> f2 = mylibrary.query_fee_owing_patrons();
+    cout << "Number of patrons that owe fees: " << f2.size() << "\n";
     
     // p1 checkout b2 (should fail - p1 owes fees)
     // p1 checkin b1  (should succeed)
