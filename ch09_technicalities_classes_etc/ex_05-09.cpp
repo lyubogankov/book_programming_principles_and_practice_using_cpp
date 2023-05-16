@@ -33,7 +33,16 @@
     - Also write a function that will return a vector that contains the names of all Patrons who owe fees.
 
     Issue with my current implementation!
-    I'm defining the books/patrons e
+    I'm defining the books/patrons outside of the Library, pass-by-ref-ing them to `<Library>.add*()` functions.
+        Then, they get `push_back()`ed onto the relevant vector.  Issue: push_back *makes a copy*, and modifying 
+        the original does not change the copy.
+
+
+    Two options:
+    - still make the books/patrons outside the library, and store them in a vector of book/patron pointers
+    - make the books/patrons within the library, and add additional function to add fee to a patron based on library card number (unique identifier)
+
+        I'll start with option 1, since (I think) it will allow me to keep my same test code.
 */
 
 #include <cctype>   // for isalnum / isdigit

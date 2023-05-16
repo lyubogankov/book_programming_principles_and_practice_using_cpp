@@ -142,6 +142,7 @@ Fourth take: removed "negative" variable.  Instead, will always store the negati
 
 
 Question - is there a way to make arguments order-agnostic?
+    Guess: no, since that would change the meaning of the operator overloading (for when (a + b) != (b + a))
 Question - is there a way to "overload" the built-in `double()` function to take Rational
     and specify a custom rule for it?  (Is there even a way to do this in Python??)
 */
