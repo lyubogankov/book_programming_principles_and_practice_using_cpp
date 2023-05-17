@@ -26,7 +26,22 @@ Discussion qs
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include <vector>
 using namespace std;
+
+// The only supported currencies for conversion are USD, DKK, JPY.
+// However, will omit error checking for this exercise.
+string USD = "$";
+string DKK = "DKK";
+string JPY = "¥";
+enum class conv_idx { UNKNOWN=-1, USD, DKK, JPY };
+// lookup: outer conv_idx = from, inner conv_idx = to
+//  ex: USD -> DKK = CONVERSION_TABLE[conv_idx::USD][conv_idx::DKK] = CONVERSION_TABLE[0][1]
+vector<vector<double>> CONVERSION_TABLE { 
+    {1.0000, 6.8800, 137.4200}, // USD to...
+    {0.1500, 1.0000,  19.9600}, // DKK to...
+    {0.0073, 0.0500,   1.0000}  // JPY to...
+}; // rates on 2023-05-17
 
 class Money {
     public:
@@ -41,9 +56,15 @@ class Money {
         int wholes() const { return _hundredths / 100; }
         int hundredths() const { return _hundredths % 100; }
         int as_hundredths() const { return _hundredths; }
+        conv_idx conversion_idx() const { return _conversion_idx; }
+        int cidx() const { return int(_conversion_idx); }
+        
+        // error reporting
+        class UnsupportedConversion {};
     private:
         long int _hundredths {0};
         string _denomination;
+        conv_idx _conversion_idx;
 };
 int fourth_fifths_round(double unrounded) {
     // odd behavior: previously had floor(amount*100), but that consistently chopped off a whole cent.
@@ -53,13 +74,21 @@ int fourth_fifths_round(double unrounded) {
         h += 1;
     return h;
 }
+conv_idx assign_conversion_idx(string denomination) {
+    if (denomination == USD) return conv_idx::USD;
+    if (denomination == DKK) return conv_idx::DKK;
+    if (denomination == JPY) return conv_idx::JPY;
+    return conv_idx::UNKNOWN;
+}
 Money::Money(string denomination, int wholes, int hundredths) :
     _denomination {denomination},
-    _hundredths { wholes*100 + hundredths }
+    _hundredths { wholes*100 + hundredths },
+    _conversion_idx {assign_conversion_idx(denomination)}
 {}
 Money::Money(string denomination, double amount) : 
     _denomination {denomination},
-    _hundredths {fourth_fifths_round(amount)}
+    _hundredths {fourth_fifths_round(amount)},
+    _conversion_idx {assign_conversion_idx(denomination)}
 {}
 
 ostream& operator<<(ostream& os, Money m) {
@@ -70,36 +99,116 @@ ostream& operator<<(ostream& os, Money m) {
               << setfill(' ');                // reset to default, bc apparently it's persistent
 }
 
-Money operator+(const Money& m1, const Money& m2) {
-
-}
-Money operator-(const Money& m1, const Money& m2) {
-
-}
 Money operator*(const Money& m, const int n) {
-
+    return Money(
+        m.denomination(),
+        (m.as_hundredths() * n) / 100.0
+    );
 }
 Money operator*(const int n, const Money& m) { return m*n; }
+Money operator*(const Money& m, const double n) {
+    return Money(
+        m.denomination(),
+        (m.as_hundredths() * n) / 100.0 
+    );
+}
+Money operator*(const double n, const Money& m) { return m*n; }
 
 // not defining n / $, as that doesn't yield Money (it returns something per unit currency)
 Money operator/(const Money& m, const int n) {
     return Money(
         m.denomination(), 
-        fourth_fifths_round(double(m.as_hundredths()) / n)
+        fourth_fifths_round(double(m.as_hundredths()) / (n*100)) / 100.0
+    );
+}
+Money operator/(const Money& m, const double n) {
+    return Money(
+        m.denomination(), 
+        fourth_fifths_round(double(m.as_hundredths()) / (n*100)) / 100.0
     );
 }
 
+// Throws error if either argument has an unknown / unsupported currency type (for conversion)
+void ensure_convertability(const Money& m1, const Money& m2) {
+    if (m1.conversion_idx() == conv_idx::UNKNOWN || m2.conversion_idx() == conv_idx::UNKNOWN)
+        throw Money::UnsupportedConversion();
+}
+bool operator==(const Money& m1, const Money& m2) {
+    cout << "    m1 (" << m1 << ") vs m2 (" << m2 << ")\n";
+    if (m1.denomination() == m2.denomination())
+        return (m1.as_hundredths() == m2.as_hundredths());
+    if (m1.conversion_idx() == conv_idx::UNKNOWN || m2.conversion_idx() == conv_idx::UNKNOWN)
+        return false;
+    // convert to same denomination as m1, and then do comparison
+    // choose the conversion factor greater than 1 to preserve rounding
+    double m1_to_m2 = CONVERSION_TABLE[m1.cidx()][m2.cidx()];
+    if (m1_to_m2 > 1) {
+        Money m1_converted = m1 * m1_to_m2;
+        Money m1_as_m2denom {
+            m2.denomination(),
+            m1_converted.wholes(),
+            m1_converted.hundredths()
+        };
+        return m1_as_m2denom == m2;
+    }
+    double m2_to_m1 = CONVERSION_TABLE[m2.cidx()][m1.cidx()];
+    Money m2_converted = m2 * m2_to_m1;
+    Money m2_as_m1denom {
+        m1.denomination(),
+        m2_converted.wholes(),
+        m2_converted.hundredths()
+    };
+    return m1 == m2_as_m1denom;
+        
+}
+// Money operator+(const Money& m1, const Money& m2) {
+//     if (m1.denomination() == m2.denomination())
+//         return Money(
+//             m1.denomination(), 
+//             m1.wholes() + m2.wholes(), 
+//             m1.hundredths() + m2.hundredths()
+//         );
+    
+// }
+// Money operator-(const Money& m1, const Money& m2) {
+
+// }
+
 int main() {
 
-    Money d1 {"$", 10.04};
-    Money d2 {"$", 10, 4};
-    Money d3 {"DKK", 5.123};
-    Money d4 {"DKK", 5.987};
+    Money d1 {USD, 10.04};
+    Money d2 {USD, 10, 4};
+    Money d3 {DKK, 5.123};
+    Money d4 {DKK, 5.987};
+    Money y5 {JPY, 1100};
 
+    // these *should* all be equal?
+    Money d6 {USD, 1.00};
+    Money d7 {DKK, 6.88};
+    Money y8 {JPY, 137.42};
+
+    // testing object construction, printing operator
     cout << "d1: " << d1 << "\n"
          << "d2: " << d2 << "\n"
          << "d3: " << d3 << "\n"
-         << "d4: " << d4 << "\n";
+         << "d4: " << d4 << "\n"
+         << "y5; " << y5 << "\n\n";
+
+    // testing multiplication, division by constant
+    cout << "d1 / 2: " << d1 / 2 << "\n"
+         << "d1 * 2: " << d1 * 2 << "\n"
+         << "(d1*2) == (2*d1): " << ((d1 * 2) == (2 * d1)) << "\n"
+         << "d1 * 1.23: " << d1 * 1.23 << "\n\n";
+
+    // testing equality
+    cout << "d6: " << d6 << "\n"
+         << "d7: " << d7 << "\n"
+         << "y8: " << y8 << "\n"
+         << "d6 == d6:\n" << (d6 == d6) << "\n"
+         << "d6 == d7:\n" << (d6 == d7) << "\n"
+         << "d7 == d6:\n" << (d7 == d6) << "\n"
+         << "d6 == y8:\n" << (d6 == y8) << "\n"
+         << "d2 == y8:\n" << (d2 == y8) << "\n";
 
     return 0;
 }
