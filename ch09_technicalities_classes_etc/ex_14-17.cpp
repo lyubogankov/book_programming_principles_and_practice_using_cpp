@@ -39,7 +39,7 @@ enum class conv_idx { UNKNOWN=-1, USD, DKK, JPY };
 //  ex: USD -> DKK = CONVERSION_TABLE[conv_idx::USD][conv_idx::DKK] = CONVERSION_TABLE[0][1]
 vector<vector<double>> CONVERSION_TABLE { 
     {1.0000, 6.8800, 137.4200}, // USD to...
-    {0.1500, 1.0000,  19.9600}, // DKK to...
+    {0.1453, 1.0000,  19.9600}, // DKK to...
     {0.0073, 0.0500,   1.0000}  // JPY to...
 }; // rates on 2023-05-17
 
@@ -109,7 +109,7 @@ Money operator*(const int n, const Money& m) { return m*n; }
 Money operator*(const Money& m, const double n) {
     return Money(
         m.denomination(),
-        (m.as_hundredths() * n) / 100.0 
+        (m.as_hundredths() * n) / 100.0
     );
 }
 Money operator*(const double n, const Money& m) { return m*n; }
@@ -169,6 +169,7 @@ Money operator+(const Money& m1, const Money& m2) {
             m1.wholes() + m2.wholes(), 
             m1.hundredths() + m2.hundredths()
         );
+    ensure_convertability(m1, m2);
     // otherwise, there's conversion required.  Always return denomination of m1.
     double m2_to_m1 = CONVERSION_TABLE[m2.cidx()][m1.cidx()];
     Money m2_converted = m2 * m2_to_m1;
@@ -178,9 +179,7 @@ Money operator+(const Money& m1, const Money& m2) {
         m1.hundredths() + m2_converted.hundredths()
     );
 }
-// Money operator-(const Money& m1, const Money& m2) {
-
-// }
+Money operator-(const Money& m1, const Money& m2) { return m1 + (-1 * m2); }
 
 int main() {
 
@@ -219,10 +218,13 @@ int main() {
          << "d2 == y8:\n" << (d2 == y8) << "\n\n";
 
     // testing addition, subtraction
-    cout << "d1 + d1: " << d6 + d6 << "\n"
+    cout << "d1 + d1: " << d1 + d1 << "\n"
          << "(d1 + d1) == (d1 * 2): " << ((d1 + d1) == (d1 * 2)) << "\n"
          << "d6 + d7: " << d6 + d7 << "\n"
-         << "d7 + d6: " << d7 + d6 << "\n\n";
+         << "d7 + d6: " << d7 + d6 << "\n"
+         // (d6 - d7) = $0.01,  (d7 - d6) = DKK0.00   - there's a rounding error somewhere
+         << "d6 - d7: " << d6 - d7 << "\n"
+         << "d7 - d6: " << d7 - d6 << "\n\n";
 
     return 0;
 }
