@@ -93,9 +93,11 @@ Money::Money(string denomination, double amount) :
 
 ostream& operator<<(ostream& os, Money m) {
     // https://stackoverflow.com/a/1714538
-    return os << m.denomination() << m.wholes() << "." 
+    if (m.wholes() < 0)
+        os << "-";
+    return os << m.denomination() << abs(m.wholes()) << "." 
               << setfill('0') << setw(2)    // want leading zero!
-              << m.hundredths()
+              << abs(m.hundredths())
               << setfill(' ');                // reset to default, bc apparently it's persistent
 }
 
@@ -179,7 +181,20 @@ Money operator+(const Money& m1, const Money& m2) {
         m1.hundredths() + m2_converted.hundredths()
     );
 }
-Money operator-(const Money& m1, const Money& m2) { return m1 + (-1 * m2); }
+Money operator-(const Money& m1, const Money& m2) {
+    cout << "\n    -1*m2: " << -1*m2 << "\n";
+    return m1 + (-1 * m2);
+    
+    // // is there anything I can do to not get the rounding error?
+    // if (m1.denomination() == m2.denomination())
+    //     return Money(
+    //         m1.denomination(), 
+    //         m1.wholes() - m2.wholes(), 
+    //         m1.hundredths() - m2.hundredths()
+    //     );
+    // ensure_convertability(m1, m2);
+
+}
 
 int main() {
 
@@ -199,7 +214,8 @@ int main() {
          << "d2: " << d2 << "\n"
          << "d3: " << d3 << "\n"
          << "d4: " << d4 << "\n"
-         << "y5; " << y5 << "\n\n";
+         << "y5: " << y5 << "\n"
+         << "Money(USD, 1, -5): " << Money(USD, 1, -5) << "\n\n";
 
     // testing multiplication, division by constant
     cout << "d1 / 2: " << d1 / 2 << "\n"
@@ -222,9 +238,9 @@ int main() {
          << "(d1 + d1) == (d1 * 2): " << ((d1 + d1) == (d1 * 2)) << "\n"
          << "d6 + d7: " << d6 + d7 << "\n"
          << "d7 + d6: " << d7 + d6 << "\n"
-         // (d6 - d7) = $0.01,  (d7 - d6) = DKK0.00   - there's a rounding error somewhere
-         << "d6 - d7: " << d6 - d7 << "\n"
-         << "d7 - d6: " << d7 - d6 << "\n\n";
+         // there's a rounding error in the subtraction...
+         << "d6 - d7: " << d6 - d7 << "\n"    //   $0.01
+         << "d7 - d6: " << d7 - d6 << "\n\n"; // DKK0.00
 
     return 0;
 }
