@@ -161,15 +161,23 @@ bool operator==(const Money& m1, const Money& m2) {
     return m1 == m2_as_m1denom;
         
 }
-// Money operator+(const Money& m1, const Money& m2) {
-//     if (m1.denomination() == m2.denomination())
-//         return Money(
-//             m1.denomination(), 
-//             m1.wholes() + m2.wholes(), 
-//             m1.hundredths() + m2.hundredths()
-//         );
-    
-// }
+Money operator+(const Money& m1, const Money& m2) {
+    // same denomination: perform addition!
+    if (m1.denomination() == m2.denomination())
+        return Money(
+            m1.denomination(), 
+            m1.wholes() + m2.wholes(), 
+            m1.hundredths() + m2.hundredths()
+        );
+    // otherwise, there's conversion required.  Always return denomination of m1.
+    double m2_to_m1 = CONVERSION_TABLE[m2.cidx()][m1.cidx()];
+    Money m2_converted = m2 * m2_to_m1;
+    return Money(
+        m1.denomination(),
+        m1.wholes() + m2_converted.wholes(),
+        m1.hundredths() + m2_converted.hundredths()
+    );
+}
 // Money operator-(const Money& m1, const Money& m2) {
 
 // }
@@ -208,7 +216,13 @@ int main() {
          << "d6 == d7:\n" << (d6 == d7) << "\n"
          << "d7 == d6:\n" << (d7 == d6) << "\n"
          << "d6 == y8:\n" << (d6 == y8) << "\n"
-         << "d2 == y8:\n" << (d2 == y8) << "\n";
+         << "d2 == y8:\n" << (d2 == y8) << "\n\n";
+
+    // testing addition, subtraction
+    cout << "d1 + d1: " << d6 + d6 << "\n"
+         << "(d1 + d1) == (d1 * 2): " << ((d1 + d1) == (d1 * 2)) << "\n"
+         << "d6 + d7: " << d6 + d7 << "\n"
+         << "d7 + d6: " << d7 + d6 << "\n\n";
 
     return 0;
 }
