@@ -29,12 +29,20 @@ Discussion qs
 #include <vector>
 using namespace std;
 
+const bool DEBUG_PRINT = false;
+
 // The only supported currencies for conversion are USD, DKK, JPY.
 // However, will omit error checking for this exercise.
 string USD = "$";
 string DKK = "DKK";
 string JPY = "¥";
 enum class conv_idx { UNKNOWN=-1, USD, DKK, JPY };
+conv_idx assign_conversion_idx(string denomination) {
+    if (denomination == USD) return conv_idx::USD;
+    if (denomination == DKK) return conv_idx::DKK;
+    if (denomination == JPY) return conv_idx::JPY;
+    return conv_idx::UNKNOWN;
+}
 // lookup: outer conv_idx = from, inner conv_idx = to
 //  ex: USD -> DKK = CONVERSION_TABLE[conv_idx::USD][conv_idx::DKK] = CONVERSION_TABLE[0][1]
 vector<vector<double>> CONVERSION_TABLE { 
@@ -69,16 +77,23 @@ class Money {
 int fourth_fifths_round(double unrounded) {
     // odd behavior: previously had floor(amount*100), but that consistently chopped off a whole cent.
     //               I also tested int(amount*100), and it had the same effect.
-    int h = int(unrounded*1000)/ 10;         // whole + hundredths
-    if ((int(unrounded*1000) % 10) >= 5)     // 4/5 rounding rule
-        h += 1;
+    int thousandths = int(unrounded*1000);
+    int h = thousandths / 10;         // whole + hundredths
+    // THIS WAS MY SUBTRACTION BUG!  no abs(), and no sign-based adjustment
+    if (abs(thousandths % 10) >= 5) {    // 4/5 rounding rule
+        if (thousandths < 0) h -= 1;
+        else                 h += 1;
+    }
+    if (DEBUG_PRINT)
+        cout << "\n"
+             << "        fourth_fifths_round(" << unrounded << ")\n"
+             << "              unrounded*1000     = " <<     unrounded*1000     << "\n"
+             << "          int(unrounded*1000)    = " << int(unrounded*1000)    << "\n"
+             << "          int(unrounded*1000)/10 = " << int(unrounded*1000)/10 << "\n"
+             << "          int(unrounded*1000)%10 = " << int(unrounded*1000)%10 << "\n"
+             << "          abs(int(unrounded*1000)%10) >= 5? " << (abs(int(unrounded*1000)%10) >= 5) << "\n"
+             << "                      hundredths = " << h << "\n";
     return h;
-}
-conv_idx assign_conversion_idx(string denomination) {
-    if (denomination == USD) return conv_idx::USD;
-    if (denomination == DKK) return conv_idx::DKK;
-    if (denomination == JPY) return conv_idx::JPY;
-    return conv_idx::UNKNOWN;
 }
 Money::Money(string denomination, int wholes, int hundredths) :
     _denomination {denomination},
@@ -93,7 +108,7 @@ Money::Money(string denomination, double amount) :
 
 ostream& operator<<(ostream& os, Money m) {
     // https://stackoverflow.com/a/1714538
-    if (m.wholes() < 0)
+    if (m.as_hundredths() < 0)
         os << "-";
     return os << m.denomination() << abs(m.wholes()) << "." 
               << setfill('0') << setw(2)    // want leading zero!
@@ -102,6 +117,12 @@ ostream& operator<<(ostream& os, Money m) {
 }
 
 Money operator*(const Money& m, const int n) {
+    if (DEBUG_PRINT)
+        cout << "\n"
+             << "        operator*\n"
+             << "          " << m << " * " << n << "\n"
+             << "           m.as_hundredths()              = " << m.as_hundredths() << "\n"
+             << "          (m.as_hundredths() * n) / 100.0 = " << (m.as_hundredths() * n) / 100.0 << "\n";
     return Money(
         m.denomination(),
         (m.as_hundredths() * n) / 100.0
@@ -109,6 +130,12 @@ Money operator*(const Money& m, const int n) {
 }
 Money operator*(const int n, const Money& m) { return m*n; }
 Money operator*(const Money& m, const double n) {
+    if (DEBUG_PRINT)
+        cout << "\n"
+             << "        operator*\n"
+             << "          " << m << " * " << n << "\n"
+             << "           m.as_hundredths()              = " << m.as_hundredths() << "\n"
+             << "          (m.as_hundredths() * n) / 100.0 = " << (m.as_hundredths() * n) / 100.0 << "\n";
     return Money(
         m.denomination(),
         (m.as_hundredths() * n) / 100.0
@@ -136,7 +163,8 @@ void ensure_convertability(const Money& m1, const Money& m2) {
         throw Money::UnsupportedConversion();
 }
 bool operator==(const Money& m1, const Money& m2) {
-    cout << "    m1 (" << m1 << ") vs m2 (" << m2 << ")\n";
+    if (DEBUG_PRINT)
+        cout << "\n        operator==(" << m1 << ", " << m2 << ")\n";
     if (m1.denomination() == m2.denomination())
         return (m1.as_hundredths() == m2.as_hundredths());
     if (m1.conversion_idx() == conv_idx::UNKNOWN || m2.conversion_idx() == conv_idx::UNKNOWN)
@@ -144,8 +172,12 @@ bool operator==(const Money& m1, const Money& m2) {
     // convert to same denomination as m1, and then do comparison
     // choose the conversion factor greater than 1 to preserve rounding
     double m1_to_m2 = CONVERSION_TABLE[m1.cidx()][m2.cidx()];
+    if (DEBUG_PRINT)
+        cout << "          m1->m2 factor: " << m1_to_m2 << "\n";
     if (m1_to_m2 > 1) {
         Money m1_converted = m1 * m1_to_m2;
+        if (DEBUG_PRINT)
+            cout << "          m1*m1_to_m2 = " << m1_converted.wholes() << "." << m1_converted.hundredths() << "\n";
         Money m1_as_m2denom {
             m2.denomination(),
             m1_converted.wholes(),
@@ -155,6 +187,9 @@ bool operator==(const Money& m1, const Money& m2) {
     }
     double m2_to_m1 = CONVERSION_TABLE[m2.cidx()][m1.cidx()];
     Money m2_converted = m2 * m2_to_m1;
+    if (DEBUG_PRINT)
+            cout << "          m2->m1 factor: " << m2_to_m1 << "\n"
+                 << "          m2*m2_to_m1 = " << m2_converted.wholes() << "." << m2_converted.hundredths() << "\n";
     Money m2_as_m1denom {
         m1.denomination(),
         m2_converted.wholes(),
@@ -164,6 +199,9 @@ bool operator==(const Money& m1, const Money& m2) {
         
 }
 Money operator+(const Money& m1, const Money& m2) {
+    if (DEBUG_PRINT)
+        cout << "\n"
+             << "        operator+(" << m1 << ", " << m2 << ")\n";
     // same denomination: perform addition!
     if (m1.denomination() == m2.denomination())
         return Money(
@@ -175,6 +213,9 @@ Money operator+(const Money& m1, const Money& m2) {
     // otherwise, there's conversion required.  Always return denomination of m1.
     double m2_to_m1 = CONVERSION_TABLE[m2.cidx()][m1.cidx()];
     Money m2_converted = m2 * m2_to_m1;
+    if (DEBUG_PRINT)
+        cout << "          conversion factor, m2 -> m1 currency: " << m2_to_m1 << "\n"
+             << "          m2 converted: " << m2_converted.wholes() << "." << m2_converted.hundredths() << "\n";
     return Money(
         m1.denomination(),
         m1.wholes() + m2_converted.wholes(),
@@ -182,18 +223,9 @@ Money operator+(const Money& m1, const Money& m2) {
     );
 }
 Money operator-(const Money& m1, const Money& m2) {
-    cout << "\n    -1*m2: " << -1*m2 << "\n";
+    if (DEBUG_PRINT)
+        cout << "\n        operator-(" << m1 << ", " << m2 << ")\n";
     return m1 + (-1 * m2);
-    
-    // // is there anything I can do to not get the rounding error?
-    // if (m1.denomination() == m2.denomination())
-    //     return Money(
-    //         m1.denomination(), 
-    //         m1.wholes() - m2.wholes(), 
-    //         m1.hundredths() - m2.hundredths()
-    //     );
-    // ensure_convertability(m1, m2);
-
 }
 
 int main() {
@@ -215,7 +247,10 @@ int main() {
          << "d3: " << d3 << "\n"
          << "d4: " << d4 << "\n"
          << "y5: " << y5 << "\n"
-         << "Money(USD, 1, -5): " << Money(USD, 1, -5) << "\n\n";
+         << "Money(USD,  1, -5): " << Money(USD, 1, -5) << "\n"
+         << "Money(USD, -1,  5): " << Money(USD, -1, 5) << "\n" 
+         << "Money(USD, -0.95):  " << Money(USD, -0.95) << "\n\n";
+
 
     // testing multiplication, division by constant
     cout << "d1 / 2: " << d1 / 2 << "\n"
@@ -227,11 +262,11 @@ int main() {
     cout << "d6: " << d6 << "\n"
          << "d7: " << d7 << "\n"
          << "y8: " << y8 << "\n"
-         << "d6 == d6:\n" << (d6 == d6) << "\n"
-         << "d6 == d7:\n" << (d6 == d7) << "\n"
-         << "d7 == d6:\n" << (d7 == d6) << "\n"
-         << "d6 == y8:\n" << (d6 == y8) << "\n"
-         << "d2 == y8:\n" << (d2 == y8) << "\n\n";
+         << "d6 == d6:" << (d6 == d6) << "\n"
+         << "d6 == d7:" << (d6 == d7) << "\n"
+         << "d7 == d6:" << (d7 == d6) << "\n"
+         << "d6 == y8:" << (d6 == y8) << "\n"
+         << "d2 == y8:" << (d2 == y8) << "\n\n";
 
     // testing addition, subtraction
     cout << "d1 + d1: " << d1 + d1 << "\n"
