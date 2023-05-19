@@ -54,6 +54,7 @@ vector<vector<double>> CONVERSION_TABLE {
 class Money {
     public:
         // constructors
+        Money() {};
         Money(string denomination, double amount);
         // // generic term = ? whole units vs fractions/remainder as hundredth (multiplied by 100)
         // Money(string denomination, int dollars, int cents);
@@ -68,11 +69,12 @@ class Money {
         int cidx() const { return int(_conversion_idx); }
         
         // error reporting
+        class InvalidSyntax {};
         class UnsupportedConversion {};
     private:
         long int _hundredths {0};
-        string _denomination;
-        conv_idx _conversion_idx;
+        string _denomination {""};
+        conv_idx _conversion_idx {conv_idx::UNKNOWN};
 };
 int fourth_fifths_round(double unrounded) {
     // odd behavior: previously had floor(amount*100), but that consistently chopped off a whole cent.
@@ -114,6 +116,35 @@ ostream& operator<<(ostream& os, Money m) {
               << setfill('0') << setw(2)    // want leading zero!
               << abs(m.hundredths())
               << setfill(' ');                // reset to default, bc apparently it's persistent
+}
+istream& operator>>(istream& is, Money& m) {
+    // if is enters bad() state, throw exception
+    is.exceptions(is.exceptions() | ios_base::badbit);
+
+    // process characters until we see start of amount
+    int count = 0;
+    bool negative = false;
+    string currency = "";
+    for(char c; is >> c;) {
+        if (isdigit(c) || c == '.') {
+            is.unget();
+            break;
+        }
+        if (c == '-') {
+            if (count == 0) negative = true;
+            else throw Money::InvalidSyntax();  // we only expect negative sign at the very front
+        } else
+            currency.push_back(c);
+        count += 1;
+    }
+    // now, process the amount!
+    double amount;
+    is >> amount;
+    if (!is) return is;
+
+    if (negative) amount *= -1;
+    m = Money(currency, amount);
+    return is;
 }
 
 Money operator*(const Money& m, const int n) {
@@ -276,6 +307,14 @@ int main() {
          // there's a rounding error in the subtraction...
          << "d6 - d7: " << d6 - d7 << "\n"    //   $0.01
          << "d7 - d6: " << d7 - d6 << "\n\n"; // DKK0.00
+
+    // testing input operator
+    while (true) {
+        Money m;
+        cout << "    Input a Money: ";
+        cin >> m;
+        cout << "    Here is the Money you entered: " << m << "\n";
+    }
 
     return 0;
 }
