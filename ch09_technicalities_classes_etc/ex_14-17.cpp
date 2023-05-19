@@ -20,7 +20,28 @@ Discussion qs
 
 17. Give an example of a calculation where a Rational gives a mathematically better result than Money.
 
+    Rational: (1/3) + (1/3) = (2/3)       = 0.6666666...  // most correct answer
+    Money:    (1/3) + (1/3) = 0.33 + 0.33 = 0.66          // each 1/3 rounded down (4/5 rule). error: +0.00666...
+    Money:            (2/3)               = 0.67          //      2/3 rounded up   (4/5 rule). error: -0.00333...
+
 18. Give an example of a calculation where a Rational gives a mathematically better result than double.
+
+    Irrational fractions.
+    Rational: (1/77) = 0.012987012987012987012987...  (according to Wolfram Alpha)
+    Double:   (1/77) = 0.01298701298701299           (according to storing in a double and printing using the code below)
+                                         ^^^^^^^^...  
+    ```C++
+    #include <iostream>
+    #include <limits>
+    using namespace std;
+    //         0.012987012987012988
+    double d = 0.01298701298701298701298701298701298701298701298701298701298701298701298701298701298701298701298701299;
+    int main() {
+        cout.precision(numeric_limits<double>::max_digits10);
+        cout << std::fixed << d << "\n";
+        return 0;
+    }
+    ```
 */
 
 #include <iomanip>
