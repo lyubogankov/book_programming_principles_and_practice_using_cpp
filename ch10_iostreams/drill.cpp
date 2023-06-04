@@ -45,6 +45,12 @@ istream& operator>>(istream& is, Point& p) {
     p = Point(x, y);
     return is;
 }
+bool operator==(const Point& p1, const Point& p2) {
+    return (p1.x() == p2.x() && p1.y() == p2.y());
+}
+bool operator!=(const Point& p1, const Point& p2) { 
+    return !(p1 == p2);
+}
 void test_point() {
     Point p1 {1, 2};
     cout << "this is my point: " << p1 << "!\n";
@@ -60,6 +66,13 @@ void output_to_file(vector<Point>& points) {
     if (!ost) throw runtime_error("File not found.");
     for (Point p : points)
         ost << p << "\n";
+}
+
+void input_from_file(vector<Point>& points) {
+    ifstream ist {"mydata.txt"};
+    if (!ist) throw runtime_error("File not found.");
+    for (Point p; ist >> p;)
+        points.push_back(p);
 }
 
 int main() {
@@ -81,6 +94,28 @@ int main() {
     // #4
     output_to_file(points);
     
+    // #5
+    vector<Point> processed_points;
+    input_from_file(processed_points);
+
+    // #6
+    for (int i=0; i<points.size(); i++)
+        cout << "[" << i+1 << "] " 
+             << "original: (" << points[i] << "), "
+             << "processed: (" << processed_points[i] <<  ")"
+             << "\n";
+
+    // #7
+    if (points.size() != processed_points.size()) {
+        cout << "Something is wrong!  points.size() != processed_points.size()\n";
+        return -1;
+    }
+    for (int i=0; i<points.size(); i++) {
+        if (points[i] != processed_points[i]) {
+            cout << "Something is wrong!  points[i] != processed_points[i] (i=" << i << ")\n";
+            return -1;
+        }
+    }
 
     return 0;
 }
