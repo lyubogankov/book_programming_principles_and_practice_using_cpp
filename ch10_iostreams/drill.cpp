@@ -19,12 +19,14 @@
     if the number of elements or the values of elements differ.
 */
 
+#include <fstream>
 #include <iostream>
 #include <vector>
 using namespace std;
 
 class Point {
     public:
+        Point()             : _x {0}, _y{0} {}
         Point(int x, int y) : _x {x}, _y{y} {}
         int x() const { return _x; }
         int y() const { return _y; }
@@ -53,8 +55,32 @@ void test_point() {
     cout << "This is the point that you entered: " << p2 << "\n";
 }
 
+void output_to_file(vector<Point>& points) {
+    ofstream ost {"mydata.txt"};
+    if (!ost) throw runtime_error("File not found.");
+    for (Point p : points)
+        ost << p << "\n";
+}
 
 int main() {
-    // test_point();  // testing #1
+    // // testing #1
+    // test_point();
+
+    // #2
+    cout << "Please input seven Points (each Point is an (x, y) pair entered as two integers separated by whitespace).\n"
+         << "Input a non-integer (ex: '.') to terminate input loop.\n";
+    vector<Point> points;
+    for (Point p; cin >> p;)
+        points.push_back(p);
+
+    // #3
+    cout << "\nThese are the points you entered:\n";
+    for (int i=0; i<points.size(); i++)
+        cout << "[" << i+1 << "] " << points[i].x() << " " << points[i].y() << "\n";
+
+    // #4
+    output_to_file(points);
+    
+
     return 0;
 }
