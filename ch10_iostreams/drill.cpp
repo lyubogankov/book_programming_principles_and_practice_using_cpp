@@ -18,3 +18,43 @@
 7. Compare the two vectors and print "Something's wrong!"
     if the number of elements or the values of elements differ.
 */
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class Point {
+    public:
+        Point(int x, int y) : _x {x}, _y{y} {}
+        int x() const { return _x; }
+        int y() const { return _y; }
+    private:
+        int _x;
+        int _y;
+};
+ostream& operator<<(ostream& os, const Point& p) {
+    return os << p.x() << " " << p.y();
+}
+// following example from 10.9 (pg 365)
+istream& operator>>(istream& is, Point& p) {
+    int x, y;
+    is >> x >> y;
+    if (!is) return is;
+    p = Point(x, y);
+    return is;
+}
+void test_point() {
+    Point p1 {1, 2};
+    cout << "this is my point: " << p1 << "!\n";
+
+    Point p2 {0, 0};
+    cout << "Please enter a point: ";
+    cin >> p2;
+    cout << "This is the point that you entered: " << p2 << "\n";
+}
+
+
+int main() {
+    // test_point();  // testing #1
+    return 0;
+}
