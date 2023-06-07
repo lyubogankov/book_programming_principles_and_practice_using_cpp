@@ -8,8 +8,12 @@
 */
 
 #include <iostream>
+#include <string>
 using namespace std;
 
+const bool TEST_PRINT = false;
+
+// https://www.hunter.cuny.edu/dolciani/pdf_files/brushup-materials/reading-and-writing-roman-numerals.pdf
 class Roman_int {
     public:
         Roman_int()      : value {0} {}
@@ -18,43 +22,88 @@ class Roman_int {
     private:
         int value;
 };
-// M = 1000, D = 500, C = 100, L = 50, X = 10, V = 5, I = 1
+
+string power_of_ten_to_roman(int leading_digit, int exponent) {
+    // ex: 
+    //  exponent              =  2  ( 100)
+    //  exponent numeral      = 'C'
+    //  next exponent         =  3  (1000)
+    //  next exponent numeral = 'M'
+    //  midpoint numeral      = 'D' ( 500)    
+    char exponent_numeral, next_exp_numeral, midpoint_numeral;
+    switch(exponent) {
+        case 0:
+            exponent_numeral = 'I';
+            next_exp_numeral = 'X';
+            midpoint_numeral = 'V';
+            break;
+        case 1:
+            exponent_numeral = 'X';
+            next_exp_numeral = 'C';
+            midpoint_numeral = 'L';
+            break;
+        case 2:
+            exponent_numeral = 'C';
+            next_exp_numeral = 'M';
+            midpoint_numeral = 'D';
+            break;
+    }
+    
+    string output = "";
+    // [1, 3]
+    if (leading_digit < 4) {
+        for (int i=0; i<leading_digit; i++) output.push_back(exponent_numeral);
+    }
+    // 4 
+    else if (leading_digit == 4) {
+        output.push_back(exponent_numeral);
+        output.push_back(midpoint_numeral);
+    }
+    // 9
+    else if (leading_digit == 9) {
+        output.push_back(exponent_numeral);
+        output.push_back(next_exp_numeral);
+    }
+    // [5, 8]
+    else {
+        output.push_back(midpoint_numeral);
+        for (int i=0; i<(leading_digit - 5); i++) output.push_back(exponent_numeral);
+    }
+    return output;
+}
 ostream& operator<<(ostream& os, const Roman_int& r) {
-    int value = r.as_int();
-
-    int thousands = value / 1000;
-    value -= thousands*1000;
-
-    int fivehundreds = value / 500;
-    value -= fivehundreds*500;
-
-    int onehundreds = value / 100;
-    value -= onehundreds*100;
-
-    int fifties = value / 50;
-    value -= fifties*50;
-
-    int tens = value / 10;
-    value -= tens*10;
-
-    int fives = value / 5;
-    value -= fives*5;
-
-    // at this point, value should equal "ones"
-    cout << "value: " << r.as_int() << "\n"
-         << "1000s: " << thousands << "\n"
-         << " 500s: " << fivehundreds << "\n"
-         << " 100s: " << onehundreds << "\n"
-         << "  50s: " << fifties << "\n"
-         << "  10s: " << tens << "\n"
-         << "   5s: " << fives << "\n"
-         << "   1s: " << value << "\n";
-
     // from document: when writing a numeral express each part of the number as if it were written
     //                in expanded notation.  Ex: 65 = 60 + 5;  827 = 800 + 20 + 7
     //  Also, a single numeral cannot repeat more than 3 times.
+    
+    int ones = r.as_int();
 
-    return os;
+    int thousands = ones / 1000;
+    ones -= thousands*1000;
+    int onehundreds = ones / 100;
+    ones -= onehundreds*100;
+    int tens = ones / 10;
+    ones -= tens*10;
+
+    if (TEST_PRINT)
+        cout << "value: " << r.as_int() << "\n"
+            << "1000s: " << thousands << "\n"
+            << " 100s: " << onehundreds << "\n"
+            << "  10s: " << tens << "\n"
+            << "   1s: " << ones << "\n";
+
+    string output = "";
+    // not handling anything above 3000
+    if (thousands > 0)
+        for (int i=0; i<thousands; i++) output.push_back('M');
+    if (onehundreds > 0)
+        output += power_of_ten_to_roman(onehundreds, 2);
+    if (tens > 0)
+        output += power_of_ten_to_roman(tens, 1);
+    if (ones > 0)
+        output += power_of_ten_to_roman(ones, 0);
+
+    return os << output;
 }
 
 const char NO_NUMERAL = '-';
@@ -109,7 +158,6 @@ int RomanNumeralInputBuffer::evaluate_buffer(bool final_numeral=false) {
     // regular - just process left numeral as-is
     return left_int;
 }
-const bool TEST_PRINT = false;
 istream& operator>>(istream& is, Roman_int& r) {
     RomanNumeralInputBuffer buffer {};
     int result = 0;
@@ -140,29 +188,35 @@ istream& operator>>(istream& is, Roman_int& r) {
     return is;
 }
 
-void test_roman_int() {
-    // //      these are all numbers that satisfy left-to-right rule
-    // cout << Roman_int(2) << "\n"
-    //      << Roman_int(20) << "\n"
-    //      << Roman_int(102) << "\n"
-    //      << Roman_int(660) << "\n"
-    // //      these don't!
-    //      << Roman_int(9) << "\n"
-    //      << Roman_int(24) << "\n"
-    //      << Roman_int(299) << "\n"
-    //      << Roman_int(1947) << "\n";
-
-    bool quit = false;
-    while (!quit) {
+void test_roman_input() {
+    while (true) {
         cout << "Please type roman numerals followed by ENTER.  Press 'CTRL+C' to quit.\n";
         Roman_int r;
         cin >> r;
         cout << "  as int: " << r.as_int() << "\n\n";
     }
 }
+void test_roman_output() {
+    //      these are all numbers that satisfy left-to-right rule
+    cout << "  2: " << Roman_int(2) << "\n"
+         << " 20: " <<  Roman_int(20) << "\n"
+         << "102: " <<  Roman_int(102) << "\n"
+         << "660: " <<  Roman_int(660) << "\n"
+    //      these don't!
+         << "   9: " <<  Roman_int(9) << "\n"
+         << "  24: " <<  Roman_int(24) << "\n"
+         << " 299: " <<  Roman_int(299) << "\n"
+         << "2307: " <<  Roman_int(2307) << "\n"
+    // more examples     
+         << "  65: " <<  Roman_int(65) << "\n"
+         << "  49: " <<  Roman_int(49) << "\n"
+         << " 345: " <<  Roman_int(345) << "\n"
+         << " 827: " <<  Roman_int(827) << "\n";
+}
 
 
 int main() {
-    test_roman_int();
+    test_roman_output();
+    test_roman_input();
     return 0;
 }
