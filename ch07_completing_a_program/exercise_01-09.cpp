@@ -325,18 +325,18 @@ class Symbol_table {
 	vector<Variable> var_table;
 public:
 	Symbol_table() :var_table({}) { }
-	double declare(string v, double d, bool readonly);
+	void declare(string v, double d, bool readonly);
 	double get(string v);
 	void set(string v, double d);
 	bool is_declared(string v);
 };
-double Symbol_table::declare(string v, double d, bool readonly) {
+void Symbol_table::declare(string v, double d, bool readonly) {
 	var_table.push_back(Variable(v, d, readonly));
 }
 double Symbol_table::get(string v) {
 	for (int i = 0; i < var_table.size(); ++i)
 		if (var_table[i].name == v) return var_table[i].value;
-			error("get: undefined name ", v);
+	error("get: undefined name ", v);
 }
 void Symbol_table::set(string v, double d) {
 	for (int i = 0; i < var_table.size(); ++i)
