@@ -56,68 +56,87 @@ ostream& operator<<(ostream& os, const Roman_int& r) {
 
     return os;
 }
-// M = 1000, D = 500, C = 100, L = 50, X = 10, V = 5, I = 1
-const int NO_NUMERAL = 0;
-int roman_to_int(int previous_numeral, int current_numeral, bool final_numeral, bool debugprint=true) {
-    if (debugprint)
-        cout << "  prev: " << previous_numeral << "  curr: " << current_numeral << "\n";
-    // handling a single numeral (no previous numeral)
-    if (previous_numeral == NO_NUMERAL) {
-        if (final_numeral) return current_numeral;
-        else               return 0;
-    }
-    // left < right means subtraction
-    if (previous_numeral < current_numeral)
-        return current_numeral - previous_numeral;
-    // otherwise, just return the current numeral
-    return current_numeral;
-}
-istream& operator>>(istream& is, Roman_int& r) {
-    
-    int current_numeral = NO_NUMERAL;
-    int previous_numeral = NO_NUMERAL;
-    int total = 0;
-    int numerals_seen = 0;
 
-    char ch;
-    bool breakout = false;
-    while(is >> ch) {
-        numerals_seen++;
-        previous_numeral = current_numeral;
-        switch (ch) {
-            case 'M':
-                current_numeral = 1000;
-                break;
-            case 'D':
-                current_numeral = 500;
-                break;
-            case 'C':
-                current_numeral = 100;
-                break;
-            case 'L':
-                current_numeral = 50;
-                break;
-            case 'X':
-                current_numeral = 10;
-                break;
-            case 'V':
-                current_numeral = 5;
-                break;
-            case 'I':
-                current_numeral = 1;
-                break;
-            default:
-                breakout = true;
+const char NO_NUMERAL = '-';
+int roman_numeral_to_int(char numeral) {
+    switch (numeral) {
+        case 'M': return 1000;
+        case 'D': return  500;
+        case 'C': return  100;
+        case 'L': return   50;
+        case 'X': return   10;
+        case 'V': return    5;
+        case 'I': return    1;
+        default:  return    0;
+    }
+}
+class RomanNumeralInputBuffer {
+    public:
+        RomanNumeralInputBuffer() {};
+        // numerals get shifted from R -> L
+        //  (imagine sliding a 2-numeral window across the page from L->R; 
+        //   the first window edge they encounter is the right one)
+        void add_numeral_to_buffer(char new_numeral) {
+            left_numeral = right_numeral;
+            right_numeral = new_numeral;
         }
-        if (breakout)
+        int evaluate_buffer(bool final_numeral);
+        void print() { cout << "l:" << left_numeral << " r:" << right_numeral << "\n"; }
+    private:
+        char left_numeral = NO_NUMERAL;
+        char right_numeral = NO_NUMERAL;
+};
+int RomanNumeralInputBuffer::evaluate_buffer(bool final_numeral=false) {
+    // no more numerals to process
+    if (final_numeral) {
+        if (right_numeral != NO_NUMERAL)
+            return roman_numeral_to_int(right_numeral);
+        else
+            return roman_numeral_to_int(left_numeral);
+    }
+    // first numeral in buffer, but not necessarily the last
+    if (left_numeral == NO_NUMERAL)
+        return 0;
+    // otherwise, we have two numerals in the buffer that need processing!
+    // subtraction
+    int right_int = roman_numeral_to_int(right_numeral);
+    int left_int  = roman_numeral_to_int(left_numeral);
+    if (left_int < right_int) {
+        left_numeral = NO_NUMERAL;
+        right_numeral = NO_NUMERAL;
+        return right_int - left_int;
+    }
+    // regular - just process left numeral as-is
+    return left_int;
+}
+const bool TEST_PRINT = false;
+istream& operator>>(istream& is, Roman_int& r) {
+    RomanNumeralInputBuffer buffer {};
+    int result = 0;
+    int total = 0;
+    char ch;
+    while(is >> ch) {
+        if (TEST_PRINT)
+            cout << "current char: " << ch << "\n";
+        if (ch != 'M' && ch != 'D' && ch != 'C' && ch != 'L' && ch != 'X' && ch != 'V' && ch != 'I')
             break;
-        // now that we have a numeral, decide what its integer value is!
-        total += roman_to_int(previous_numeral, current_numeral, false);
+        if (TEST_PRINT) {
+            cout << "  before: ";
+            buffer.print();
+        }
+        buffer.add_numeral_to_buffer(ch);
+        if (TEST_PRINT) {
+            cout << "  after:  ";
+            buffer.print();
+            result = buffer.evaluate_buffer();
+            cout << "  result: " << result << "\n";
+            total += result;
+        } else
+            total += buffer.evaluate_buffer();
     }
     // finish out the conversion
-    total += roman_to_int(previous_numeral, current_numeral, true);
+    total += buffer.evaluate_buffer(true);
     r = Roman_int(total);
-
     return is;
 }
 
