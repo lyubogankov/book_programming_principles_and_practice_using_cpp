@@ -116,7 +116,7 @@ istream& operator>>(istream&is, Month& m) {
     // month
     string month_marker, mm;
     is >> month_marker >> mm;
-    if (!is || month_marker != "month") throw runtime_error("bad reading");
+    if (!is || month_marker != "month") throw runtime_error("bad month reading");
     m.month = month_to_int(mm);
     // arbitrary # of readings (0+)
     int duplicates=0, invalids=0;
@@ -143,7 +143,7 @@ istream& operator>>(istream&is, Year& y) {
     string year_marker;
     int yy;
     is >> year_marker >> yy;
-    if (!is || year_marker != "year") throw runtime_error("bad reading");
+    if (!is || year_marker != "year") throw runtime_error("bad year reading");
     y.year = yy;
     // read 0-12 months
     // the book's code doesn't check for duplicate months
@@ -158,12 +158,30 @@ istream& operator>>(istream&is, Year& y) {
 
 // output from file -----------------------------------------------------------
 const string INDENT_UNIT = "    ";
-void print_month(ofstream &ofs, Month& m, string indent = INDENT_UNIT) {
+
+void print_day(ofstream& ofs, int daynum, Day& d, string indent=INDENT_UNIT+INDENT_UNIT) {
+    for (int h=0; h<d.hour.size(); h++)
+        if (d.hour[h] != not_a_reading)
+            ofs << "\n" << indent << '(' << daynum << ' ' << h << ' ' << d.hour[h] << ')';
+}
+
+void print_month(ofstream &ofs, Month& m, string indent=INDENT_UNIT) {
     // month: start
     ofs << "\n" + indent + "{ month " << int_to_month(m.month) << " ";
     // if at least one day present
+    int num_days_printed = 0;
+    if (m.has_valid_readings()) {
+        for (int d=0; d<m.day.size(); d++) {
+            if (m.day[d].has_valid_readings()) {
+                print_day(ofs, d, m.day[d]);
+                num_days_printed++;
+            }
+        }
+    }
     // month: end
-    ofs << '}';
+    if (num_days_printed > 0)
+        ofs << "\n" << indent;
+    ofs << "}";
 }
 
 void print_year(ofstream& ofs, Year& y)
@@ -174,14 +192,19 @@ void print_year(ofstream& ofs, Year& y)
     // year: start
     ofs << "{ year " << y.year << " ";
     // if least one month present
+    int num_months_printed = 0;
     if (y.has_valid_readings()) {
-        for (Month& m : y.month)
-            if (m.month != not_a_month)
+        for (Month& m : y.month) {
+            if (m.month != not_a_month) {
                 print_month(ofs, m);
+                num_months_printed++;
+            }
+        }
     }
     // year: end
+    if (num_months_printed > 0)
+        ofs << "\n";
     ofs << '}';
-    return
 }
 
 
