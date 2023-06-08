@@ -5,6 +5,31 @@
 
 7. Make a version of the calculator from Chapter 7 that 
     accepts Roman numerals rather than the usual Arabic ones, for example, XXI + CIV == CXXV.
+
+
+    Plan: change the `Number` within the grammar to accept Roman numerals.
+        This involves modifying `Token_stream::get()`, which handles input from the user.
+
+    Question: should I use my `Roman_int` class as a way to get a raw integer into the calculator,
+                or should the calculator operate directly on `Roman_int`s?
+
+    Complication:
+        If the calc is to operate directly on `Roman_int`s, I need to write operator overloads.
+        However, that won't be sufficient, because idk if I can overload `sqrt()` and `pow()`.
+
+        Also, several operations (division, sqrt, pow) have the potential to return a non-integer
+        output.  Thankfully integer division is defined, but I'll need to cast the result 
+        of sqrt/pow to integer.
+
+    Finally:
+        Will need to also use `Roman_int` class for output to screen.
+
+
+    ---
+
+    Changes:
+    - Token_stream::get() - re-defining what is a valid number
+    - calculator_REPL()   - at the very end, casting the printout of statement() as a Roman_int when printing  
 */
 
 #include <iostream>
@@ -182,6 +207,7 @@ istream& operator>>(istream& is, Roman_int& r) {
         } else
             total += buffer.evaluate_buffer();
     }
+    is.unget(); // will this put back the last char? it seems to be eating characters
     // finish out the conversion
     total += buffer.evaluate_buffer(true);
     r = Roman_int(total);
@@ -214,7 +240,7 @@ void test_roman_output() {
          << " 827: " <<  Roman_int(827) << "\n";
 }
 
-// ________________________________________________________________________________________________
+// ================================================================================================
 // ================================================================================================
 // Calculator code from Ch07:
 
@@ -252,7 +278,8 @@ Primary:
     '-'Primary
     '+'Primary
 Number
-	Floating-point number (can be float or integet)
+	Roman numeral (only uppercase letters) // Floating-point number (can be float or integer)
+
 Variable
 	[a-zA-Z][a-zA-Z0-9]*  // (from drill)
 	[a-zA-Z]\w*			  // (#1 -- allow underscores )
@@ -324,22 +351,29 @@ Token Token_stream::get()
     case quit:
     case print:
 		return Token(ch);
-	case '.':
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
+	// case '.':
+	// case '0':
+	// case '1':
+	// case '2':
+	// case '3':
+	// case '4':
+	// case '5':
+	// case '6':
+	// case '7':
+	// case '8':
+	// case '9':
+    case 'M':
+    case 'D':
+    case 'C':
+    case 'L':
+    case 'X':
+    case 'V':
+    case 'I':
 	{	
         cin.unget();
-        double val;
+        Roman_int val; // double val;
         cin >> val;
-        return Token(number, val);
+        return Token(number, val.as_int());
 	}
 	default:
 		// the OR clause feels hacky.  Not sure how it's "supposed" to be done.
@@ -561,7 +595,8 @@ void clean_up_mess()
 
 void print_help() {
 	cout << "Welcome to our simple calculator.\n"
-		 << "Please enter expressions using floating point numbers.\n"
+		 << "Please enter expressions using Roman numerals (uppercase letters only).\n"
+         << "Since it operates on Roman numerals, only positive integer input/output is supported."
 		 << "Valid operators:\n"
 		 << "        +      (addition)\n"
 		 << "        -      (subtraction)\n"
@@ -571,6 +606,14 @@ void print_help() {
 		 << "    pow(b, n)  (b = base, n = exponent)\n"
 		 << "    sqrt(x)    (square root of non-negative x)\n"
 		 << "To evaluate expression, type '" << print << "' or press ENTER\n"
+         << "\n"
+         << "You may create named variables (read/writeable) using the following syntax:\n"
+         << "    let {variable_name} = Expression  // variable names should be lowercase to avoid conflicting with Roman numerals\n"
+         << "\n"
+         << "You may also created named constants (read-only once created) using the following syntax:\n"
+         << "    const {variable_name} = Expression\n"
+         << "\n"
+         << "You may bring up this help text by typing '" << help << "' at any time.\n"
 		 << "To exit calculator, type '" << quit << "' or '" << quit_full << "'\n"
 		 << "\n";
 }
@@ -593,22 +636,23 @@ void calculator_REPL()
 			print_help();
 		else {
 			ts.unget(t);
-			cout << result << statement() << endl;
+			cout << result << Roman_int{int(statement())} << '\n';
 		}
 	}
 	catch (runtime_error& e) {
-		cerr << e.what() << endl;
+		cerr << e.what() << '\n';
 		clean_up_mess();
 	}
 }
 
 int main()
 try {
+    print_help();
 	calculator_REPL();
 	return 0;
 }
 catch (exception& e) {
-	cerr << "exception: " << e.what() << endl;
+	cerr << "exception: " << e.what() << '\n';
 	char c;
 	while (cin >> c && c != ';');
 	return 1;
