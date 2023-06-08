@@ -6,6 +6,24 @@
 Input / output format:
 { year <int> { month <3-letter str> {<int day> <int hour/24> <double temp-reading>}* }*}
             ^                      ^ could be whitespace / newlines here
+
+
+It works!!!
+
+I needed to change some of the textbook code because the read loop was working one too many times,
+and `ch` was uninitialized the second time around, causing errors to be thrown.
+    instead of:
+        ```
+        char ch;
+        if (is >> ch && ch != '<prefix char>') ...
+        ```
+
+    changed to:
+        ```
+        char ch;
+        is >> ch;
+        if (!is || ch != '<prefix char') ...
+        ```
 */
 
 #include <algorithm>
@@ -21,7 +39,9 @@ const int not_a_month = -1;
 struct Day {
     // initialize with 24x "not a reading"
     vector<double> hour {vector<double>(24, not_a_reading)};
-    bool has_valid_readings() {
+    bool has_valid_readings() 
+    // is there at least one valid reading in this day?
+    {
         for (double& r : hour)
             if (r != not_a_reading) return true;
         return false;
@@ -30,7 +50,11 @@ struct Day {
 struct Month {
     int month {not_a_month}; // [0, 11] where jan=0
     vector<Day> day {32}; // [1, 31] (not using idx 0)
-    bool has_valid_readings() {
+    bool has_valid_readings() 
+    // Is there at least one valid reading within this month?
+    // Since this calls Day.has_valid_readings:
+    // month will return true as long as there is 1 day with 1 hour valid.
+    {
         for (int i=1; i<32; i++)
             if (day[i].has_valid_readings()) return true;
         return false;
@@ -80,7 +104,8 @@ istream& operator>>(istream& is, Reading& r)
 // checking format, but not bothering with validity
 {
     char ch1;
-    if (is >> ch1 && ch1 != '(') {
+    is >> ch1;
+    if (!is || ch1 != '(') {
         is.unget();
         is.clear(ios_base::failbit);
         return is;
@@ -108,7 +133,8 @@ void end_of_loop(istream& ist, char term, const string& message)
 }
 istream& operator>>(istream&is, Month& m) {
     char ch = 0;
-    if (is >> ch && ch != '{') {
+    is >> ch;
+    if (!is || ch != '{') {
         is.unget();
         is.clear(ios_base::failbit);
         return is;
@@ -135,14 +161,20 @@ istream& operator>>(istream&is, Month& m) {
 }
 istream& operator>>(istream&is, Year& y) {
     char ch;
-    if (is >> ch && ch != '{') {
+    is >> ch;
+    if (!is || ch != '{') {
         is.unget();
         is.clear(ios_base::failbit);
         return is;
     }
+    // cout << "    ... this was the character obtained: " << ch << "\n"
+    //      << "        (as int: " << int(ch) << ")\n";
+
     string year_marker;
     int yy;
     is >> year_marker >> yy;
+    // cout << "    ym: " << year_marker << "\n";
+    // cout << "    yy: " << yy << "\n";
     if (!is || year_marker != "year") throw runtime_error("bad year reading");
     y.year = yy;
     // read 0-12 months
@@ -204,7 +236,7 @@ void print_year(ofstream& ofs, Year& y)
     // year: end
     if (num_months_printed > 0)
         ofs << "\n";
-    ofs << '}';
+    ofs << "}\n";
 }
 
 
@@ -232,6 +264,7 @@ int main() {
         Year y;
         if(!(ifs >> y)) break;
         years.push_back(y);
+        cout << "    ... just read a year\n";
     }
     cout << "... read " << years.size() << " years of readings from input file.\n";
 
