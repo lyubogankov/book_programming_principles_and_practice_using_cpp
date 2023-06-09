@@ -1,6 +1,17 @@
 /*
 10. Add a command `from x` to the calculator from Chapter 7 that makes it take input from a file x.
+        Brainstorming:
+            What if someone types: "from file.txt; 1 + 1;" ?
+            Need to somehow have a second Token_stream specifically for my file.
+
+            Maybe I can edit the Token_stream class and have multiple input streams?
+            The global one can be initialized with cin by default.
+
     Add a command `to y` to the calculator that makes it write its output (both standard output and error output) to file y.
+        Done!  Implemented within:
+        - Token_stream::get(): recognizes "to" command and filename (must end in "".txt")
+        - calculator_REPL():   upon reception of "to" token, obtains filename and redirects stdout/err for x1 statement()
+    
     ---
     Write a collection of test cases based on ideas from §7.3 and use that to test the calculator.
     Discuss how you would use these commands for testing.
@@ -16,8 +27,8 @@ Calculation:
     Statement
     Print (';') (ENTER)
     Quit ('q') (quit)
-    Help (h) (H) (help)
-    from Filename Statement
+    Help (h) (help)
+    from Filename (contains Statement)
     to Filename Statement
     Calculation Statement
 Statement:
@@ -92,7 +103,6 @@ const char filename = 'F';
 const char quit = 'q';
 const string quit_full = "exit";
 const char help = 'h';
-const char help_upper = 'H';
 const string help_full = "help";
 const char print = ';';
 const char number = '8';
@@ -420,6 +430,7 @@ void calculator_REPL()
             freopen("/dev/tty", "w", stdout);
             freopen("/dev/tty", "w", stderr);
         }
+        // otherwise, print to the screen as usual!
         else {
             if (t.kind == help) 
                 print_help();
