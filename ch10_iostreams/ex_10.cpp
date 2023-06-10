@@ -41,6 +41,8 @@
             next trying vector of pointers to tokenstreams
             https://cplusplus.com/forum/beginner/25121/
 
+            This worked!!!
+
 
     Add a command `to y` to the calculator that makes it write its output (both standard output and error output) to file y.
         Done!  Implemented within:
@@ -63,8 +65,9 @@ Calculation:
     Print (';') (ENTER)
     Quit ('q') (quit)
     Help (h) (help)
-    from Filename (contains Statement)
     to Filename Statement
+    from Filename (contains Statement)
+    from Filename to Filename 
     Calculation Statement
 Statement:
     Declaration
@@ -474,6 +477,25 @@ void print_help() {
 const string prompt = "> ";
 const string result = "= ";
 
+void file_to(Token_stream& ts) {
+    // obtain output file
+    Token t = ts.get();
+    if (t.kind != filename) error("expected filename after 'to' keyword");
+    string fileout = t.name;
+    // check whether the file can be opened
+    ofstream ofs {fileout};
+    if (!ofs) throw runtime_error("Could not open file for output (" + fileout + ")");
+    ofs.close(); // close explicitly
+    // perform redirection
+    freopen(fileout.c_str(), "w", stdout);
+    freopen(fileout.c_str(), "w", stderr);
+    // output computation
+    cout << statement() << '\n';
+    // revert redirection
+    freopen("/dev/tty", "w", stdout);
+    freopen("/dev/tty", "w", stderr);
+}
+
 void calculator_REPL()
 {
     Token_stream ts0 {};
@@ -496,29 +518,20 @@ void calculator_REPL()
             // create the new token stream
             Token_stream tsfile {filein};
             tss.push_back(&tsfile);
-            // perform computation
-            cout << result << statement() << '\n';
+            // check if the next token is "from filename" and perform computation
+            t = ts.get();
+            if (t.kind != fileto) {
+                ts.unget(t);
+                cout << result << statement() << '\n';
+            } else {
+                file_to(ts);
+            }
             // discard the file token stream, we're done with it!
             tss.pop_back();
         }
         // redirect output (stdout, stderr) to a file
         else if (t.kind == fileto) {
-            // obtain output file
-            t = ts.get();
-            if (t.kind != filename) error("expected filename after 'to' keyword");
-            string fileout = t.name;
-            // check whether the file can be opened
-            ofstream ofs {fileout};
-            if (!ofs) throw runtime_error("Could not open file for output (" + fileout + ")");
-            ofs.close(); // close explicitly
-            // perform redirection
-            freopen(fileout.c_str(), "w", stdout);
-            freopen(fileout.c_str(), "w", stderr);
-            // output computation
-            cout << statement() << '\n';
-            // revert redirection
-            freopen("/dev/tty", "w", stdout);
-            freopen("/dev/tty", "w", stderr);
+            file_to(ts);
         }
         // otherwise, print to the screen as usual!
         else {
