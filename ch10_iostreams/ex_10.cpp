@@ -134,11 +134,10 @@ const char _pow = 'p';
 
 Token Token_stream::get()
 {
-    ifstream ifs;
-    if (ifstream_src != "") {
-        ifstream ifs {ifstream_src};
+    ifstream ifs {ifstream_src};
+    if (ifstream_src != "")
         if (!ifs) throw runtime_error("Could not open file for reading (" + ifstream_src + ')');
-    }
+    
     if (full) { full = false; return buffer; }
     char ch;
     // eat whitespace
@@ -471,8 +470,22 @@ void calculator_REPL()
         while (t.kind == print) t = ts.get();
         if (t.kind == quit) return;
 
+        // open a new file for reading - put a new Token_stream on top of the stack
+        if (t.kind == filefrom) {
+            // obtain input file;
+            t = ts.get();
+            if (t.kind != filename) error("expected filename after 'to' keyword");
+            string filein = t.name;
+            // create the new token stream
+            Token_stream ts_file {filein};
+            tss.push_back(ts_file);
+            // perform computation
+            cout << result << statement() << '\n';
+            // discard the file token stream, we're done with it!
+            tss.pop_back();
+        }
         // redirect output (stdout, stderr) to a file
-        if (t.kind == fileto) {
+        else if (t.kind == fileto) {
             // obtain output file
             t = ts.get();
             if (t.kind != filename) error("expected filename after 'to' keyword");
