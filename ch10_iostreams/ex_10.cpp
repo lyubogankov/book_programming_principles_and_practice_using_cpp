@@ -7,6 +7,26 @@
             Maybe I can edit the Token_stream class and have multiple input streams?
             The global one can be initialized with cin by default.
 
+            After thinking about it some more, perhaps I need to have a global vector of 
+            Token_streams.  Typically, the only stream inside is the cin stream.
+            However, when they say "from file.txt", we append a new token_stream to read from that
+            file and all places that use tokenstream change to use the top of the tokenstream "stack".
+            Then, when we're done with that, we pop it off of the tokenstream stack.
+
+            ---
+
+            Implementation:
+            - Token_stream now has private `ifstream_src` string variable that contains filename to which
+                we want to print.
+            - Within Token_stream::get() and ::ignore(), instead of always reading from cin we test
+                `ifstream_src`.  If it's not empty str, create ifstream variable and read from that 
+                instead of cin.  I originally wanted the ifstream variable to be a private member of 
+                the Token_stream so that I could open it upon construction, but I got errors messages
+                when trying to use the Token_stream so I dropped that idea.
+            - Instead of a global Token_stream variable, now have a global vector<Token_stream> variable.
+                Each function that previously used ts now uses the vector (it's used as a stack) - before
+                doing anything, the function obtains the Token_stream at the top of the stack.
+
     Add a command `to y` to the calculator that makes it write its output (both standard output and error output) to file y.
         Done!  Implemented within:
         - Token_stream::get(): recognizes "to" command and filename (must end in "".txt")
@@ -83,8 +103,10 @@ struct Token {
 class Token_stream {
     bool full;
     Token buffer;
+    string ifstream_src;
 public:
     Token_stream() :full(0), buffer(0) { }
+    Token_stream(string inputfile) :full(0), buffer(0), ifstream_src {inputfile} { }
     Token get();
     void unget(Token t) { buffer = t; full = true; }
     void ignore(char);
@@ -112,11 +134,21 @@ const char _pow = 'p';
 
 Token Token_stream::get()
 {
+    ifstream ifs;
+    if (ifstream_src != "") {
+        ifstream ifs {ifstream_src};
+        if (!ifs) throw runtime_error("Could not open file for reading (" + ifstream_src + ')');
+    }
     if (full) { full = false; return buffer; }
     char ch;
     // eat whitespace
     // https://en.cppreference.com/w/cpp/string/byte/isspace (the table really helped)
-    do { cin >> noskipws >> ch; } while(isspace(ch) and ch != '\n');
+    do { 
+        if (ifstream_src == "")
+            cin >> noskipws >> ch;
+        else
+            ifs >> noskipws >> ch;
+    } while(isspace(ch) and ch != '\n');
     switch (ch) {
     case '\n': 
         // https://stackoverflow.com/a/15905343
@@ -147,9 +179,14 @@ Token Token_stream::get()
     case '8':
     case '9':
     {    
-        cin.unget();
         double val;
-        cin >> val;
+        if (ifstream_src == "") {
+            cin.unget();
+            cin >> val;
+        } else {
+            ifs.unget();
+            ifs >> val;
+        }
         return Token(number, val);
     }
     default:
@@ -157,8 +194,13 @@ Token Token_stream::get()
         if (isalpha(ch) || ch == '_') {
             string s;
             s += ch;
-            while (cin.get(ch) && (isalpha(ch) || isdigit(ch) || ch == '_' || ch == '.')) s += ch;
-            cin.unget();
+            if (ifstream_src == "") {
+                while (cin.get(ch) && (isalpha(ch) || isdigit(ch) || ch == '_' || ch == '.')) s += ch;
+                cin.unget();
+            } else {
+                while (ifs.get(ch) && (isalpha(ch) || isdigit(ch) || ch == '_' || ch == '.')) s += ch;
+                ifs.unget();
+            }
             if (s == "pow") return Token(_pow);
             if (s == "sqrt") return Token(_sqrt);
             if (s == quit_full) return Token(quit);
@@ -185,8 +227,15 @@ void Token_stream::ignore(char c)
     full = false;
 
     char ch;
-    while (cin >> ch)
-        if (ch == c) return;
+    if (ifstream_src == "") {
+        while (cin >> ch)
+            if (ch == c) return;
+    } else {
+        ifstream ifs {ifstream_src};
+        if (!ifs) throw runtime_error("Could not open file for reading (" + ifstream_src + ')');
+        while (ifs >> ch)
+            if (ch == c) return;
+    }
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -235,11 +284,13 @@ Symbol_table symbol_table;
 
 // ------------------------------------------------------------------------------------------------
 
-Token_stream ts;
+vector<Token_stream> tss;
+// Token_stream ts;
 
 double expression();
 
 void ensure_next_token_of_desired_kind(char desired, string error_msg) {
+    Token_stream& ts = (tss[tss.size() - 1]);
     Token t = ts.get();
     if (t.kind == desired) return;
     ts.unget(t);
@@ -248,6 +299,7 @@ void ensure_next_token_of_desired_kind(char desired, string error_msg) {
 
 double primary()
 {
+    Token_stream& ts = (tss[tss.size() - 1]);
     Token t = ts.get();
     switch (t.kind) {
     case '(':
@@ -299,6 +351,7 @@ double primary()
 
 double term()
 {
+    Token_stream& ts = (tss[tss.size() - 1]);
     double left = primary();
     while (true) {
         Token t = ts.get();
@@ -324,6 +377,7 @@ double term()
 
 double expression()
 {
+    Token_stream& ts = (tss[tss.size() - 1]);
     double left = term();
     while (true) {
         Token t = ts.get();
@@ -343,6 +397,7 @@ double expression()
 
 double declaration(bool constant)
 {
+    Token_stream& ts = (tss[tss.size() - 1]);
     Token t = ts.get();
     if (t.kind != name) error("name expected in declaration");
     string varname = t.name;
@@ -356,6 +411,7 @@ double declaration(bool constant)
 
 double statement()
 {
+    Token_stream& ts = (tss[tss.size() - 1]);
     Token t = ts.get();
     switch (t.kind) {
     case let:
@@ -371,6 +427,7 @@ double statement()
 
 void clean_up_mess()
 {
+    Token_stream& ts = (tss[tss.size() - 1]);
     ts.ignore(print);
 }
 
@@ -403,6 +460,9 @@ const string result = "= ";
 
 void calculator_REPL()
 {
+    Token_stream ts0;
+    tss.push_back(ts0);
+    Token_stream& ts = (tss[tss.size() - 1]);
     symbol_table.declare("pi", 3.1415926535, true);
 
     while (true) try {
