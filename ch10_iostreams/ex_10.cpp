@@ -300,13 +300,13 @@ Symbol_table symbol_table;
 
 // ------------------------------------------------------------------------------------------------
 
-vector<Token_stream> tss;
+vector<Token_stream*> tss;
 // Token_stream ts;
 
 double expression();
 
 void ensure_next_token_of_desired_kind(char desired, string error_msg) {
-    Token_stream& ts = (tss[tss.size() - 1]);
+    Token_stream& ts = *(tss[tss.size() - 1]);
     Token t = ts.get();
     if (t.kind == desired) return;
     ts.unget(t);
@@ -315,7 +315,7 @@ void ensure_next_token_of_desired_kind(char desired, string error_msg) {
 
 double primary()
 {
-    Token_stream& ts = (tss[tss.size() - 1]);
+    Token_stream& ts = *(tss[tss.size() - 1]);
     Token t = ts.get();
     switch (t.kind) {
     case '(':
@@ -367,7 +367,7 @@ double primary()
 
 double term()
 {
-    Token_stream& ts = (tss[tss.size() - 1]);
+    Token_stream& ts = *(tss[tss.size() - 1]);
     double left = primary();
     while (true) {
         Token t = ts.get();
@@ -393,7 +393,7 @@ double term()
 
 double expression()
 {
-    Token_stream& ts = (tss[tss.size() - 1]);
+    Token_stream& ts = *(tss[tss.size() - 1]);
     double left = term();
     while (true) {
         Token t = ts.get();
@@ -413,7 +413,7 @@ double expression()
 
 double declaration(bool constant)
 {
-    Token_stream& ts = (tss[tss.size() - 1]);
+    Token_stream& ts = *(tss[tss.size() - 1]);
     Token t = ts.get();
     if (t.kind != name) error("name expected in declaration");
     string varname = t.name;
@@ -427,7 +427,7 @@ double declaration(bool constant)
 
 double statement()
 {
-    Token_stream& ts = (tss[tss.size() - 1]);
+    Token_stream& ts = *(tss[tss.size() - 1]);
     Token t = ts.get();
     switch (t.kind) {
     case let:
@@ -443,7 +443,7 @@ double statement()
 
 void clean_up_mess()
 {
-    Token_stream& ts = (tss[tss.size() - 1]);
+    Token_stream& ts = *(tss[tss.size() - 1]);
     ts.ignore(print);
 }
 
@@ -476,8 +476,9 @@ const string result = "= ";
 
 void calculator_REPL()
 {
-    tss.emplace_back(Token_stream());
-    Token_stream& ts = (tss[tss.size() - 1]);
+    Token_stream ts0 {};
+    tss.push_back(&ts0);
+    Token_stream& ts = *(tss[tss.size() - 1]);
     symbol_table.declare("pi", 3.1415926535, true);
 
     while (true) try {
@@ -493,7 +494,8 @@ void calculator_REPL()
             if (t.kind != filename) error("expected filename after 'to' keyword");
             string filein = t.name;
             // create the new token stream
-            tss.emplace_back(Token_stream(filein));
+            Token_stream tsfile {filein};
+            tss.push_back(&tsfile);
             // perform computation
             cout << result << statement() << '\n';
             // discard the file token stream, we're done with it!
