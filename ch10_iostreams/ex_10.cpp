@@ -27,6 +27,21 @@
                 Each function that previously used ts now uses the vector (it's used as a stack) - before
                 doing anything, the function obtains the Token_stream at the top of the stack.
 
+            ---
+            This didn't work.  Opening/closing the file each time resulted in the first
+            character being read over and over, which is not the desired outcome.
+
+            Instead, now going to try: keeping the ifstream within the Token_stream as a
+            member variable.
+
+            AHHH it still doesn't work.
+            https://stackoverflow.com/a/40358499 < tried emplace_back to avoid copying but no luck.
+
+            ---
+            next trying vector of pointers to tokenstreams
+            https://cplusplus.com/forum/beginner/25121/
+
+
     Add a command `to y` to the calculator that makes it write its output (both standard output and error output) to file y.
         Done!  Implemented within:
         - Token_stream::get(): recognizes "to" command and filename (must end in "".txt")
@@ -101,12 +116,20 @@ struct Token {
 };
 
 class Token_stream {
+private:
     bool full;
     Token buffer;
-    string ifstream_src;
+    ifstream ifs;
 public:
-    Token_stream() :full(0), buffer(0) { }
-    Token_stream(string inputfile) :full(0), buffer(0), ifstream_src {inputfile} { }
+    Token_stream() : full {0}, buffer {0}, ifs {} {}
+    Token_stream(string inputfile)  : full {0}, buffer {0}, ifs {} { 
+        ifs.open(inputfile);
+        if (!ifs) throw runtime_error("Could not open file for reading (" + inputfile + ")");
+    }
+    ~ Token_stream() {
+        if (ifs.is_open())
+            ifs.close();
+    }
     Token get();
     void unget(Token t) { buffer = t; full = true; }
     void ignore(char);
@@ -134,19 +157,15 @@ const char _pow = 'p';
 
 Token Token_stream::get()
 {
-    ifstream ifs {ifstream_src};
-    if (ifstream_src != "")
-        if (!ifs) throw runtime_error("Could not open file for reading (" + ifstream_src + ')');
-    
     if (full) { full = false; return buffer; }
     char ch;
     // eat whitespace
     // https://en.cppreference.com/w/cpp/string/byte/isspace (the table really helped)
     do { 
-        if (ifstream_src == "")
-            cin >> noskipws >> ch;
-        else
+        if (ifs.is_open())
             ifs >> noskipws >> ch;
+        else
+            cin >> noskipws >> ch;
     } while(isspace(ch) and ch != '\n');
     switch (ch) {
     case '\n': 
@@ -179,12 +198,12 @@ Token Token_stream::get()
     case '9':
     {    
         double val;
-        if (ifstream_src == "") {
-            cin.unget();
-            cin >> val;
-        } else {
+        if (ifs.is_open()) {
             ifs.unget();
             ifs >> val;
+        } else {
+            cin.unget();
+            cin >> val;
         }
         return Token(number, val);
     }
@@ -193,12 +212,12 @@ Token Token_stream::get()
         if (isalpha(ch) || ch == '_') {
             string s;
             s += ch;
-            if (ifstream_src == "") {
-                while (cin.get(ch) && (isalpha(ch) || isdigit(ch) || ch == '_' || ch == '.')) s += ch;
-                cin.unget();
-            } else {
+            if (ifs.is_open()) {
                 while (ifs.get(ch) && (isalpha(ch) || isdigit(ch) || ch == '_' || ch == '.')) s += ch;
                 ifs.unget();
+            } else {
+                while (cin.get(ch) && (isalpha(ch) || isdigit(ch) || ch == '_' || ch == '.')) s += ch;
+                cin.unget();
             }
             if (s == "pow") return Token(_pow);
             if (s == "sqrt") return Token(_sqrt);
@@ -226,13 +245,11 @@ void Token_stream::ignore(char c)
     full = false;
 
     char ch;
-    if (ifstream_src == "") {
-        while (cin >> ch)
+    if (ifs.is_open()) {
+        while (ifs >> ch)
             if (ch == c) return;
     } else {
-        ifstream ifs {ifstream_src};
-        if (!ifs) throw runtime_error("Could not open file for reading (" + ifstream_src + ')');
-        while (ifs >> ch)
+        while (cin >> ch)
             if (ch == c) return;
     }
 }
@@ -459,8 +476,7 @@ const string result = "= ";
 
 void calculator_REPL()
 {
-    Token_stream ts0;
-    tss.push_back(ts0);
+    tss.emplace_back(Token_stream());
     Token_stream& ts = (tss[tss.size() - 1]);
     symbol_table.declare("pi", 3.1415926535, true);
 
@@ -477,8 +493,7 @@ void calculator_REPL()
             if (t.kind != filename) error("expected filename after 'to' keyword");
             string filein = t.name;
             // create the new token stream
-            Token_stream ts_file {filein};
-            tss.push_back(ts_file);
+            tss.emplace_back(Token_stream(filein));
             // perform computation
             cout << result << statement() << '\n';
             // discard the file token stream, we're done with it!
