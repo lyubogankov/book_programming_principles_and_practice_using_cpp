@@ -100,17 +100,16 @@ int main() {
         longest_phonenum_size = max(longest_phonenum_size, int(p.phonenumber.length()));
     }
 
-    // header:
-    // print '------...'
-    for (int i=0; i<(longest_firstname_size + longest_lastname_size + longest_phonenum_size + 4 + 6); ++i) cout << '-';
+    // header:                                                                           '|'s v   v ' 's
+    int num_dashes = longest_firstname_size + longest_lastname_size + longest_phonenum_size + 4 + 6;
+    for (int i=0; i<num_dashes; ++i) cout << '-';
     cout << '\n';
     // print out column names
     cout << "| " << setw(longest_firstname_size) << "first" 
         << " | " << setw(longest_lastname_size) << "last"
         << " | " << setw(longest_phonenum_size) << "phone"
         << " |\n";
-    // print '------...'
-    for (int i=0; i<(longest_firstname_size + longest_lastname_size + longest_phonenum_size + 4 + 6); ++i) cout << '-';
+    for (int i=0; i<num_dashes; ++i) cout << '-';
     cout << '\n';
     // body
     for (Person& p : folks) {
@@ -120,7 +119,7 @@ int main() {
             << " |\n";
     }
     // footer
-    for (int i=0; i<(longest_firstname_size + longest_lastname_size + longest_phonenum_size + 4 + 6); ++i) cout << '-';
+    for (int i=0; i<num_dashes; ++i) cout << '-';
     cout << '\n';
 
     return 0;
