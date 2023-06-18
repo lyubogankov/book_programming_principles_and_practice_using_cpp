@@ -2,3 +2,4 @@
 *.out
 .vscode/
 ch10_iostreams/*.txt
+ch11_customizing_io/*.txt
