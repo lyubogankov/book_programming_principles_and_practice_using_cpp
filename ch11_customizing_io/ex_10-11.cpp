@@ -7,6 +7,7 @@
     where whitespace is defined as “ordinary whitespace” plus the characters in w.
 */
 
+#include <cctype>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -31,24 +32,41 @@ bool string_contains_char(const string& s, const char& c) {
 }
 
 vector<string> split(const string& s, const string& w) {
-    istringstream iss {s};
+    // istringstream iss {s};
+    // vector<string> split = {""};
+    // int current_idx = 0;
+    // int i;
+    // string substr;
+    // // break up the input string by normal whitespace 
+    // while(iss >> substr) {
+    //     // For each whitespace-separated substring, iterate over each character.
+    //     i = 0;
+    //     for (char c : substr) {
+    //         if (string_contains_char(w, c)) {
+    //             current_idx += 1;
+    //             // if (i < substr.size())
+    //             split.push_back("");
+    //         } else
+    //             split[current_idx].push_back(c);
+    //         ++i;
+    //     }
+    // }
+
     vector<string> split = {""};
+    istringstream iss {s};
+    char c;
     int current_idx = 0;
-    int i;
-    string substr;
-    // break up the input string by normal whitespace 
-    while(iss >> substr) {
-        // For each whitespace-separated substring, iterate over each character.
-        i = 0;
-        for (char c : substr) {
-            if (string_contains_char(w, c)) {
-                current_idx += 1;
-                // if (i < substr.size())
+
+    int chars_seen = 0;
+    while (iss >> c) {
+        if (string_contains_char(w, c) || isspace(c)) {
+            current_idx++;
+            if (chars_seen < s.size() - 1)
                 split.push_back("");
-            } else
-                split[current_idx].push_back(c);
-            ++i;
-        }
+        } else
+            split[current_idx].push_back(c);
+
+        chars_seen++;
     }
 
     return split;
