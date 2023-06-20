@@ -9,6 +9,7 @@
 */
 
 #include <fstream>
+#include <ios>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -16,6 +17,23 @@ using namespace std;
 
 void ex12(const string& src="ex_12-13_input.txt", const string& dst="ex_12_output.txt") {
     // Can I do this by manipulating the file pointer?  Try it!
+    ifstream ifs {src};
+    if (!ifs) throw runtime_error("Could not open file for reading (" + src + ")");
+    ofstream ofs {dst};
+    if (!ofs) throw runtime_error("Could not open file for writing (" + dst + ")");
+
+    // beginning = 0, end = 118 = size.
+    ifs.seekg(0, ios_base::beg);
+    cout << "Beginning position: " << ifs.tellg() << "\n";
+    ifs.seekg(0, ios_base::end);
+    int size = ifs.tellg();
+    cout << "End position:       " << size << "\n";
+    
+    /*
+    https://en.cppreference.com/w/cpp/io/basic_istream/seekg
+    https://en.cppreference.com/w/cpp/io/basic_istream/tellg
+    https://en.cppreference.com/w/cpp/io/ios_base/seekdir
+    */
 }
 
 void ex13_ignorewhitespace(const string& src="ex_12-13_input.txt", const string& dst="ex_13_output.txt") {
@@ -44,8 +62,8 @@ void ex13_preserve_whitespace(const string& src="ex_12-13_input.txt", const stri
 }
 
 int main() {
-
-    ex13_ignorewhitespace();
-
+    ex12();
+    // ex13_ignorewhitespace();
+    // ex13_preserve_whitespace();
     return 0;
 }
