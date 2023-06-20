@@ -14,9 +14,15 @@
 #include <vector>
 using namespace std;
 
-void ex13(const string& src="ex_12-13_input.txt", const string& dst="ex_13_output.txt") {
+void ex12(const string& src="ex_12-13_input.txt", const string& dst="ex_12_output.txt") {
+    // Can I do this by manipulating the file pointer?  Try it!
+}
+
+void ex13_ignorewhitespace(const string& src="ex_12-13_input.txt", const string& dst="ex_13_output.txt") {
     // This function will reverse the order, but it will not preserve the type of whitespace
     // encountered between words.  In the output, all words will be separated by space (' ').
+    //
+    // In order to preserve type of whitespace, need to read in the file contents character-by-character.
     ifstream ifs {src};
     if (!ifs) throw runtime_error("Could not open file for reading (" + src + ")");
     ofstream ofs {dst};
@@ -33,10 +39,13 @@ void ex13(const string& src="ex_12-13_input.txt", const string& dst="ex_13_outpu
             ofs << ' ';
     }
 }
+void ex13_preserve_whitespace(const string& src="ex_12-13_input.txt", const string& dst="ex_13_output2.txt") {
+
+}
 
 int main() {
 
-    ex13();
+    ex13_ignorewhitespace();
 
     return 0;
 }
