@@ -17,23 +17,45 @@ using namespace std;
 
 void ex12(const string& src="ex_12-13_input.txt", const string& dst="ex_12_output.txt") {
     // Can I do this by manipulating the file pointer?  Try it!
+    /*  It worked!!
+
+    Input
+
+this is a file of whitespace-separated
+words.  Notice how there was a newline  there?  And then a tab, and two spaces.
+    
+    Output
+
+.secaps owt dna ,bat a neht dnA  ?ereht  enilwen a saw ereht woh ecitoN  .sdrow
+detarapes-ecapsetihw fo elif a si siht
+
+    */
     ifstream ifs {src};
     if (!ifs) throw runtime_error("Could not open file for reading (" + src + ")");
     ofstream ofs {dst};
     if (!ofs) throw runtime_error("Could not open file for writing (" + dst + ")");
 
-    // beginning = 0, end = 118 = size.
-    ifs.seekg(0, ios_base::beg);
-    cout << "Beginning position: " << ifs.tellg() << "\n";
-    ifs.seekg(0, ios_base::end);
-    int size = ifs.tellg();
-    cout << "End position:       " << size << "\n";
-    
     /*
     https://en.cppreference.com/w/cpp/io/basic_istream/seekg
     https://en.cppreference.com/w/cpp/io/basic_istream/tellg
     https://en.cppreference.com/w/cpp/io/ios_base/seekdir
     */
+    // // beginning = 0, end = 118 = size.
+    // ifs.seekg(0, ios_base::beg);
+    // cout << "Beginning position: " << ifs.tellg() << "\n";
+    // ifs.seekg(0, ios_base::end);
+    // int _size = ifs.tellg();
+    // cout << "End position:       " << _size << "\n";
+    
+    ifs.seekg(0, ios_base::end);
+    int size = ifs.tellg();
+    char c;
+    for(int i=1; i <= size; i++) {
+        ifs.seekg(-1*i, ios_base::end); // position pointer
+        ifs >> noskipws >> c;
+        // cout << "[" << i << "]  " << c << "  " << int(c) << "\n";
+        ofs << c;
+    }
 }
 
 void ex13_ignorewhitespace(const string& src="ex_12-13_input.txt", const string& dst="ex_13_output.txt") {
