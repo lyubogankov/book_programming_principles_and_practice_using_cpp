@@ -28,8 +28,8 @@ words.  Notice how there was a newline  there?  And then a tab, and two spaces.
 
 .secaps owt dna ,bat a neht dnA  ?ereht  enilwen a saw ereht woh ecitoN  .sdrow
 detarapes-ecapsetihw fo elif a si siht
-
     */
+
     ifstream ifs {src};
     if (!ifs) throw runtime_error("Could not open file for reading (" + src + ")");
     ofstream ofs {dst};
@@ -63,6 +63,19 @@ void ex13_ignorewhitespace(const string& src="ex_12-13_input.txt", const string&
     // encountered between words.  In the output, all words will be separated by space (' ').
     //
     // In order to preserve type of whitespace, need to read in the file contents character-by-character.
+    /*
+    Input
+
+this is a file of whitespace-separated
+words.  Notice how there was a newline  there?  And then a tab, and two spaces.
+
+    Output
+
+spaces. two and tab, a then And there? newline a was there how Notice words. whitespace-separated of file a is this
+
+    */
+
+
     ifstream ifs {src};
     if (!ifs) throw runtime_error("Could not open file for reading (" + src + ")");
     ofstream ofs {dst};
@@ -80,12 +93,47 @@ void ex13_ignorewhitespace(const string& src="ex_12-13_input.txt", const string&
     }
 }
 void ex13_preserve_whitespace(const string& src="ex_12-13_input.txt", const string& dst="ex_13_output2.txt") {
+    /*
+    Input
 
+this is a file of whitespace-separated
+words.  Notice how there was a newline  there?  And then a tab, and two spaces.
+
+    Output
+    
+spaces. two and tab, a then And  there?  newline a was there how Notice  words.
+whitespace-separated of file a is this
+    */
+
+    ifstream ifs {src};
+    if (!ifs) throw runtime_error("Could not open file for reading (" + src + ")");
+    ofstream ofs {dst};
+    if (!ofs) throw runtime_error("Could not open file for writing (" + dst + ")");
+
+    vector<string> contents;
+    char c;
+    string s;
+    while (ifs >> noskipws >> c) {
+        // if we've encountered a whitespace char we know we're done with current
+        // word stored in s.  Also store the whitespace!
+        if (isspace(c)) {
+            contents.push_back(s);
+            s = ""; // reset s
+            string ws {c};
+            contents.push_back(ws);
+        } else
+            s.push_back(c);
+    }
+    if (s.size() > 0)
+        contents.push_back(s);
+
+    for(int i=contents.size()-1; i >= 0; i--)
+        ofs << contents[i];
 }
 
 int main() {
     ex12();
-    // ex13_ignorewhitespace();
-    // ex13_preserve_whitespace();
+    ex13_ignorewhitespace();
+    ex13_preserve_whitespace();
     return 0;
 }
