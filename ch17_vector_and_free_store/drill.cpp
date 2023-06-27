@@ -49,3 +49,30 @@ The second part focuses on pointers and their relation to arrays. Using print_ar
 
 13. Repeat 10–12 using a vector rather than an array.
 */
+
+#include <iostream>
+using namespace std;
+
+// parts 1-3
+void partone() {
+    // 1.
+    int* myarr = new int(10);
+    int size=10;
+    // initialization
+    for(int i=0; i<size; i++)
+        myarr[i] = size - i;
+
+    // 2.
+    for(int i=0; i<size; i++)
+        cout << myarr[i] << " ";
+    cout << "\n";
+
+    // 3.
+    delete[] myarr;
+}
+
+
+int main() {
+    partone();
+    return 0;
+}
