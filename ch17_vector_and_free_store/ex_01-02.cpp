@@ -63,6 +63,11 @@ int main() {
          << "Address of 2nd element of pb (         &pb[1]): " << &pb[1] << '\n'
          << "Difference between 1st/2nd elements:            " << &pb[1] - &pb[0] << '\n';
 
+    // cleanup
+    delete[] p;
+    delete[] pd;
+    delete[] pb;
+
     cout << "\n\nChecking our work:\n"
          << "int:    " << sizeof(int) << '\n'
          << "double: " << sizeof(double) << '\n'
