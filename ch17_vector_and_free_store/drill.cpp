@@ -15,9 +15,7 @@
 The second part focuses on pointers and their relation to arrays. Using print_array() from the last drill:
 
 1. Allocate an int, initialize it to 7, and assign its address to a variable p1.
-
 2. Print out the value of p1 and of the int it points to.
-
 3. Allocate an array of seven ints; initialize it to 1, 2, 4, 8, etc.; and assign its address to a variable p2.
 
 4. Print out the value of p2 and of the array it points to.
@@ -41,11 +39,14 @@ The second part focuses on pointers and their relation to arrays. Using print_ar
 13. Repeat 10–12 using a vector rather than an array.
 */
 
+#include <cmath>
 #include <iostream>
 #include <vector>
 using namespace std;
 
 // ----------------------------------------------------------------------------
+// PART ONE
+//
 // 4.
 void print_array10(ostream& os, int* a) {
     for (int i=0; i<10; i++)
@@ -71,7 +72,7 @@ void one_thru_four() {
     delete[] myarr;
 }
 
-// ----------------------------------------------------------------------------
+// ----------------------------------------------
 // 7.
 void print_array(ostream& os, int* a, int size) {
     for (int i=0; i<size; i++)
@@ -88,7 +89,7 @@ void allocate_and_print(int size) {
     delete[] myarr; // 9. whoops, had forgotten to delete!
 }
 
-// ----------------------------------------------------------------------------
+// ----------------------------------------------
 // 10.
 void print_vector(ostream& os, vector<int>& v) {
     for (int element : v)
@@ -102,8 +103,37 @@ void allocate_and_print_vector(int size) {
     print_vector(cout, v);
 }
 
+// ----------------------------------------------------------------------------
+// PART TWO
+//
+
+void part_two_array() {
+    cout << "\n\n---- PART TWO\n";
+    
+    // 1.
+    int i1 = 7;
+    int* p1 = &i1;
+    // 2.
+    cout << "i1: " << i1 << "\np1: " << p1 << "\n";
+    // 3.
+    int p2_size = 7;
+    int* p2 = new int[p2_size];
+    for (int i=0; i<p2_size; i++)
+        p2[i] = pow(2, i+1);
+    cout << "p2: ";
+    print_array(cout, p2, p2_size);
+    cout << "p2 address: " << p2 << "\n";
+
+    // cleanup
+    delete[] p2;
+}
+// void part_two_vector() {
+// }
+
 
 int main() {
+
+    // Part One
     one_thru_four();
     allocate_and_print(10); // 5.
     allocate_and_print(11); // 6.
@@ -113,5 +143,7 @@ int main() {
     allocate_and_print_vector(11);
     allocate_and_print_vector(20);
     
+    // Part Two
+
     return 0;
 }
