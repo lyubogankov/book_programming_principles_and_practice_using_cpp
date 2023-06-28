@@ -2,23 +2,14 @@
  This drill has two parts. The first exercises/builds your understanding of free-store-allocated arrays and contrasts arrays with vectors:
 
 1. Allocate an array of ten ints on the free store using new.
-
 2. Print the values of the ten ints to cout.
-
 3. Deallocate the array (using delete[]).
-
 4. Write a function print_array10(ostream& os, int* a) that prints out the values of a (assumed to have ten elements) to os.
-
 5. Allocate an array of ten ints on the free store; initialize it with the values 100, 101, 102, etc.; and print out its values.
-
 6. Allocate an array of 11 ints on the free store; initialize it with the values 100, 101, 102, etc.; and print out its values.
-
 7. Write a function print_array(ostream& os, int* a, int n) that prints out the values of a (assumed to have n elements) to os.
-
 8. Allocate an array of 20 ints on the free store; initialize it with the values 100, 101, 102, etc.; and print out its values.
-
 9. Did you remember to delete the arrays? (If not, do it.)
-
 10. Do 5, 6, and 8 using a vector instead of an array and a print_vector() instead of print_array().
 
 The second part focuses on pointers and their relation to arrays. Using print_array() from the last drill:
@@ -51,13 +42,21 @@ The second part focuses on pointers and their relation to arrays. Using print_ar
 */
 
 #include <iostream>
+#include <vector>
 using namespace std;
 
-// parts 1-3
-void partone() {
+// ----------------------------------------------------------------------------
+// 4.
+void print_array10(ostream& os, int* a) {
+    for (int i=0; i<10; i++)
+        os << a[i] << " ";
+    os << '\n';
+}
+
+void one_thru_four() {
     // 1.
-    int* myarr = new int(10);
-    int size=10;
+    int size = 10;
+    int* myarr = new int[size];
     // initialization
     for(int i=0; i<size; i++)
         myarr[i] = size - i;
@@ -66,13 +65,53 @@ void partone() {
     for(int i=0; i<size; i++)
         cout << myarr[i] << " ";
     cout << "\n";
+    print_array10(cout, myarr);
 
     // 3.
     delete[] myarr;
 }
 
+// ----------------------------------------------------------------------------
+// 7.
+void print_array(ostream& os, int* a, int size) {
+    for (int i=0; i<size; i++)
+        os << a[i] << " ";
+    os << '\n';
+}
+
+// parts 5-9
+void allocate_and_print(int size) {
+    int* myarr = new int[size];
+    for (int i=0; i<size; i++)
+        myarr[i] = 100 + i;
+    print_array(cout, myarr, size);
+    delete[] myarr; // 9. whoops, had forgotten to delete!
+}
+
+// ----------------------------------------------------------------------------
+// 10.
+void print_vector(ostream& os, vector<int>& v) {
+    for (int element : v)
+        os << element << " ";
+    os << '\n';
+}
+void allocate_and_print_vector(int size) {
+    vector<int> v;
+    for (int i=0; i<size; i++)
+        v.push_back(100 + i);
+    print_vector(cout, v);
+}
+
 
 int main() {
-    partone();
+    one_thru_four();
+    allocate_and_print(10); // 5.
+    allocate_and_print(11); // 6.
+    allocate_and_print(20); // 8.
+    // 10.
+    allocate_and_print_vector(10);
+    allocate_and_print_vector(11);
+    allocate_and_print_vector(20);
+    
     return 0;
 }
