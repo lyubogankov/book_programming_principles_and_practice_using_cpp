@@ -23,13 +23,9 @@ The second part focuses on pointers and their relation to arrays. Using print_ar
 7. Assign p3 to p2.
 8. Print out the values of p1 and p2 and of what they point to.
 9. Deallocate all the memory you allocated from the free store.
-
 10. Allocate an array of ten ints; initialize it to 1, 2, 4, 8, etc.; and assign its address to a variable p1.
-
 11. Allocate an array of ten ints, and assign its address to a variable p2.
-
 12. Copy the values from the array pointed to by p1 into the array pointed to by p2.
-
 13. Repeat 10–12 using a vector rather than an array.
 */
 
@@ -136,9 +132,37 @@ void part_two() {
 }
 
 void part_two_array() {
-
+    // 10.
+    int size = 10;
+    int* p1 = new int[size];
+    for (int i=0; i<size; i++)
+        p1[i] = pow(2, i);
+    // 11.
+    int* p2 = new int[size];
+    // 12.
+    for (int i=0; i<size; i++)
+        p2[i] = p1[i];
+    cout << "p1: ";
+    print_array(cout, p1, size);
+    cout << "p2: ";
+    print_array(cout, p2, size);
+    // cleanup
+    delete[] p1;
+    delete[] p2;
 }
+// 13.
 void part_two_vector() {
+    int size = 10;
+    vector<int> v1;
+    for (int i=0; i<size; i++)
+        v1.push_back(pow(2, i));
+    vector<int> v2;
+    for (int element : v1)
+        v2.push_back(element);
+    cout << "v1: ";
+    print_vector(cout, v1);
+    cout << "v2: ";
+    print_vector(cout, v2);
 }
 
 
