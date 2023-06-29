@@ -3,6 +3,10 @@
    Find out what happens. You have two obvious alternatives: look for documentation, 
    or write a program with an infinite loop that allocates but never deallocates. Try both.
    Approximately how much memory did you manage to allocate before failing?
+
+
+
+   Table with binary unit names: https://web.njit.edu/~walsh/powers/
 */
 
 #include <limits.h>
