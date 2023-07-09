@@ -25,7 +25,9 @@
     Re-implement that example using only a singly-linked list.
 */
 
+#include <iostream>
 #include <string>
+using std::cout;
 using std::string;
 
 // from 17.10:
@@ -168,4 +170,101 @@ Link* Link::advance(int n) const
             return nullptr;
         return curr;
     }
+}
+
+// ------------------------------------------------------------------------------------------------
+// Testing the Link class
+
+bool test_construction() {
+
+    // testing single link
+    string v = "value";
+    Link l = Link(v);
+    if (l.value != v) {
+        cout << "    ... did not correctly initialize `l`'s value\n";
+        return false;
+    }
+    if (l.next() != nullptr || l.previous() != nullptr) {
+        cout << "    ... did not correctly initialize `l`'s prev/succ pointers\n";
+        return false;
+    }
+
+    // making cycle - two links that point to each other
+    string v2 = "second value";
+    Link l2 = Link(v2, &l, &l);
+    if (l2.next() != &l || l2.next() != &l) {
+        cout << "    ... did not correctly initialize `l2`'s prev/succ pointers to `&l`\n";
+        return false;
+    }
+    l.insert(&l2);
+    l.add(&l2);
+    if (l.next() != &l2 || l.previous() != &l2) {
+        cout << "    ... did not correctly initialize `l`'s prev/succ pointers to `&l2`\n";
+        return false;
+    }
+
+    return true;
+}
+bool test_add() {
+    // setup
+    Link a {"A"};
+    Link b {"B"};
+    Link c {"C"};
+    Link* ret1 = a.add(&b);  // A <-> B
+    Link* ret2 = b.add(&c);  // A <-> B <-> C
+    
+    if (a.previous() != nullptr || a.next() != &b || b.previous() != &a || ret1 != &b) {
+        cout << "    ... a.add(&b) failed.\n";
+        return false;
+    }
+    if (b.next() != &c || c.previous() != &b || ret2 != &c) {
+        cout << "    ... b.add(&c) failed.\n";
+        return false;
+    }
+
+    Link* ret3 = b.add(nullptr);
+    if (ret3 != &b || b.previous() != &a || b.next() != &c) {
+        cout << "    ... b.add(nullptr) failed.\n";
+        return false;
+    }
+
+    return true;
+}
+bool test_insert() {
+    // setup
+    Link a {"A"};
+    Link b {"B"};
+    Link c {"C"};
+    a.add(&b);  // A <-> B
+    b.add(&c);  // A <-> B <-> C
+
+    Link* ret = b.insert(nullptr);
+    if (ret != &b || b.previous() != &a || b.next() != &c) {
+        cout << "    ... b.insert(nullptr) failed\n";
+        return false;
+    }
+
+    Link n {"N"};
+    ret = b.insert(&n);
+    if(ret != &n || n.previous() != &a || n.next() != &b 
+                 || b.previous() != &n || b.next() != &c) {
+        cout << "    ... b.insert(&n) failed\n";
+        return false;
+    }
+
+    return true;
+}
+
+void run_tests() {
+    cout << "... testing construction:   \n" << test_construction() << '\n';
+    cout << "... testing Link::add():    \n" << test_add() << '\n';
+    cout << "... testing Link::insert(): \n" << test_insert() << '\n';
+}
+
+
+
+
+int main() {
+    run_tests();
+    return 0;
 }
