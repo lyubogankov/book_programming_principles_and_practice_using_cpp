@@ -337,18 +337,52 @@ bool test_find() {
     a.add(&b);  // A <-> B
     b.add(&c);  // A <-> B <-> C
 
+    Link* ret;
+    // case 1: can't find string
+    ret = b.find("meme");
+    if (ret != nullptr) {
+        cout << "    ... b.find(\"meme\") failed\n";
+        return false;
+    }
+    // case 2: string belongs to current link
+    ret = b.find("B");
+    if (ret != &b) {
+        cout << "    ... b.find(\"B\") failed\n";
+        return false;
+    }
+    // case 3: string is ahead of current link
+    ret = b.find("C");
+    if (ret != &c) {
+        cout << "    ... b.find(\"C\") failed\n";
+        return false;
+    }
+    // case 4: string is behind current link
+    ret = b.find("A");
+    if (ret != &a) {
+        cout << "    ... b.find(\"A\") failed\n";
+        return false;
+    }
+
     return true;
 }
 bool test_find_const() {
+    // setup
+    Link a {"A"};
+    Link b {"B"};
+    Link c {"C"};
+    a.add(&b);  // A <-> B
+    b.add(&c);  // A <-> B <-> C
+    
     return true;
 }
 
 void run_tests() {
-    cout << "... testing construction:        \n" << test_construction() << '\n';
-    cout << "... testing Link::add():         \n" << test_add() << '\n';
-    cout << "... testing Link::insert():      \n" << test_insert() << '\n';
-    cout << "... testing Link::erase():       \n" << test_insert() << '\n';
-    cout << "... testing Link::advance(int n):\n" << test_advance() << '\n';
+    cout << "... testing construction:               \n" << test_construction() << '\n';
+    cout << "... testing Link::add():                \n" << test_add() << '\n';
+    cout << "... testing Link::insert():             \n" << test_insert() << '\n';
+    cout << "... testing Link::erase():              \n" << test_insert() << '\n';
+    cout << "... testing Link::advance(int n):       \n" << test_advance() << '\n';
+    cout << "... testing Link::find(const string& s):\n" << test_find() << '\n';
 }
 
 
