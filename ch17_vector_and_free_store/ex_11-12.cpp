@@ -14,6 +14,18 @@
     
 
 12. Why did we define two versions of find()?
+
+    `Link* find(...)`
+        vs
+    `const Link* find(...) const`
+
+    The first makes no guarantees about whether object calling `find()` member function (`this`)
+    will get modified.  Furthermore, the `Link*` it returns is mutable.
+
+    The second is for use with a `const Link*` list - where each `Link*` is `const`.
+    We can't call the first version of `find()` from a `const Link*` because it's not guaranteed
+    to not modify `this`, the `const Link*`.
+
 */
 
 #include <iostream>
