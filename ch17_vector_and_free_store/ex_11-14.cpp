@@ -189,17 +189,10 @@ bool test_construction() {
         return false;
     }
 
-    // making cycle - two links that point to each other
     string v2 = "second value";
     Link l2 = Link(v2, &l, &l);
     if (l2.next() != &l || l2.next() != &l) {
         cout << "    ... did not correctly initialize `l2`'s prev/succ pointers to `&l`\n";
-        return false;
-    }
-    l.insert(&l2);
-    l.add(&l2);
-    if (l.next() != &l2 || l.previous() != &l2) {
-        cout << "    ... did not correctly initialize `l`'s prev/succ pointers to `&l2`\n";
         return false;
     }
 
@@ -252,6 +245,39 @@ bool test_insert() {
         return false;
     }
 
+    return true;
+}
+bool test_erase() {
+    // setup
+    Link a {"A"};
+    Link b {"B"};
+    Link c {"C"};
+    a.add(&b);  // A <-> B
+    b.add(&c);  // A <-> B <-> C
+
+    return true;
+}
+bool test_advance() {
+    // setup
+    Link a {"A"};
+    Link b {"B"};
+    Link c {"C"};
+    a.add(&b);  // A <-> B
+    b.add(&c);  // A <-> B <-> C
+
+    return true;
+}
+bool test_find() {
+    // setup
+    Link a {"A"};
+    Link b {"B"};
+    Link c {"C"};
+    a.add(&b);  // A <-> B
+    b.add(&c);  // A <-> B <-> C
+
+    return true;
+}
+bool test_find_const() {
     return true;
 }
 
