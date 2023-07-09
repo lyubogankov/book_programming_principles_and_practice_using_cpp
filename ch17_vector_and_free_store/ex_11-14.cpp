@@ -255,6 +255,27 @@ bool test_erase() {
     a.add(&b);  // A <-> B
     b.add(&c);  // A <-> B <-> C
 
+    // case 1: erase middle node, get `&c` back
+    Link* ret = b.erase();
+    if(ret != &c || a.next() != &c || c.previous() != &a) {
+        cout << "    ... b.erase() failed\n";
+        return false;
+    }
+
+    // case 2: erase `c`, get `&a` back
+    ret = c.erase();
+    if(ret != &a || a.next() != nullptr) {
+        cout << "    ... c.erase() failed\n";
+        return false;
+    }
+
+    // case 3: erasing last `Link` in the list, get `nullptr` back
+    ret = a.erase();
+    if(ret != nullptr) {
+        cout << "    ... a.erase() failed\n";
+        return false;
+    }
+
     return true;
 }
 bool test_advance() {
@@ -285,6 +306,7 @@ void run_tests() {
     cout << "... testing construction:   \n" << test_construction() << '\n';
     cout << "... testing Link::add():    \n" << test_add() << '\n';
     cout << "... testing Link::insert(): \n" << test_insert() << '\n';
+    cout << "... testing Link::erase():  \n" << test_insert() << '\n';
 }
 
 
