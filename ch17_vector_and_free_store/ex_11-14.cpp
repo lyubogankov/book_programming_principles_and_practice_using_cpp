@@ -1,6 +1,13 @@
 /*
 11. Complete the “list of gods” example from §17.10.1 and run it.
 
+    **I changed `Link* advance(int n)` so that `this` non-const qualified.
+    I couldn't figure out a way to return pointer to current Link if n == 0 :(
+
+    Two options were...
+    - remove const-qualification for `this`                                 <- chose this option
+    - make the function return a const Link* instead of a mutable Link*
+
 12. Why did we define two versions of find()?
 
 13. Modify the Link class from §17.10.1 to hold a value of a `struct God`. 
@@ -43,7 +50,7 @@ public:
     Link* erase();                              // remove current object from linked list
     Link* find(const string& s);                // find Link containing string `s`
     const Link* find(const string& s) const;    // find Link containing string `s` within const list
-    Link* advance(int n) const;                 // advance pointer `n` positions in linked list
+    Link* advance(int n) /*const*/;                 // advance pointer `n` positions in linked list
     Link* next() const { return succ; }         // advance pointer +1 position in linked list
     Link* previous() const { return prev; }     // advance pointer -1 position in linked list
 private:
@@ -139,14 +146,16 @@ const Link* Link::find(const string& s) const
     return nullptr;
 }
 
-Link* Link::advance(int n) const
+Link* Link::advance(int n) /*const*/
 // advance pointer `n` positions in linked list and return new `Link` if possible;
 // otherwise return `nullptr
 {
+
+    Link* curr = this;
+        
+
     // wasn't sure how to get around `const` in function!  that means it's not supposed to
     // mess with internal state of current object, so we're making a copy.
-    Link curr_val = *this;
-    Link* curr = &curr_val;
 
     // move forward
     if (n > 0) {
@@ -286,6 +295,38 @@ bool test_advance() {
     a.add(&b);  // A <-> B
     b.add(&c);  // A <-> B <-> C
 
+    Link* ret;
+    // case 1: advance by 0, should get same obj back
+    ret = b.advance(0);
+    if(ret != &b) {
+        cout << "    ... b.advance(0) failed\n";
+        return false;
+    }   
+    // case 2: advance by positive integer within list bounds, should get Link* back
+    ret = b.advance(1);
+    if(ret != &c) {
+        cout << "    ... b.advance(1) failed\n";
+        return false;
+    }
+    // case 3: advance by positive integer outside list bounds, should get nullptr back
+    ret = b.advance(2);
+    if(ret != nullptr) {
+        cout << "    ... b.advance(2) failed\n";
+        return false;
+    }
+    // case 4: advance by negative integer within list bounds, should get Link* back
+    ret = b.advance(-1);
+    if(ret != &a) {
+        cout << "    ... a.advance(-1) failed\n";
+        return false;
+    }
+    // case 5: advance by negative integer outside list bounds, should get nullptr back
+    ret = b.advance(-2);
+    if(ret != nullptr) {
+        cout << "    ... b.advance(-2) failed\n";
+        return false;
+    }
+
     return true;
 }
 bool test_find() {
@@ -303,10 +344,11 @@ bool test_find_const() {
 }
 
 void run_tests() {
-    cout << "... testing construction:   \n" << test_construction() << '\n';
-    cout << "... testing Link::add():    \n" << test_add() << '\n';
-    cout << "... testing Link::insert(): \n" << test_insert() << '\n';
-    cout << "... testing Link::erase():  \n" << test_insert() << '\n';
+    cout << "... testing construction:        \n" << test_construction() << '\n';
+    cout << "... testing Link::add():         \n" << test_add() << '\n';
+    cout << "... testing Link::insert():      \n" << test_insert() << '\n';
+    cout << "... testing Link::erase():       \n" << test_insert() << '\n';
+    cout << "... testing Link::advance(int n):\n" << test_advance() << '\n';
 }
 
 
