@@ -36,7 +36,7 @@ char* strdup(const char* s) {
 }
 
 // ex 05
-char* findx(/*const*/ char* s, const char*x, bool printout=true) {
+char* findx_original(/*const*/ char* s, const char*x, bool printout=true) {
     
     // // Before I read the problem carefully:
     // this will return the (zero-indexed) index within `s` 
@@ -64,6 +64,30 @@ char* findx(/*const*/ char* s, const char*x, bool printout=true) {
     return ret;
 }
 
+// oh -- the issue was that `s`' and the return type need to /match/.  Both can be `const`!
+const char* findx(const char* s, const char* x) {
+
+    // from bewuethr's solution
+    // https://github.com/bewuethr/stroustrup-ppp/blob/main/chapter17/chapter17_ex05.cpp
+    if (x == 0)
+        return s;
+
+    int j=0;
+    for (int i=0; s[i] != 0; i++) {
+        // if we're (continuing) to match between s/x, advance j!
+        if (s[i] == x[j])
+            j++;
+        // if we've hit the end of x, this means we have a match.
+        else if (x[j] == 0)
+            return &s[i-j];
+        // otherwise, reset j -- no longer matching.
+        else
+            j = 0;
+    }
+    // if we haven't already returned, there is no match.
+    return nullptr;
+}
+
 int main() {
 
     // ex 03
@@ -81,10 +105,10 @@ int main() {
     delete[] copied;
 
     // ex 05
-    char* substr = findx(s, "world");
-    cout << "'world' within '" << s << "'? " << (substr != nullptr) << '\n';
-    substr = findx(s, "meme");
-    cout << "'meme' within '" << s << "'? " << (substr != nullptr) << '\n';
+    const char* substr1 = findx(s, "world");
+    cout << "'world' within '" << s << "'? " << (substr1 != nullptr) << '\n';
+    const char* substr2 = findx(s, "meme");
+    cout << "'meme'  within '" << s << "'? " << (substr2 != nullptr) << '\n';
 
     return 0;
 }
