@@ -8,28 +8,12 @@
     - remove const-qualification for `this`                                 <- chose this option
     - make the function return a const Link* instead of a mutable Link*
 
+    ** I was at first flummoxed over `const Link* find(const string& s) const`
+    because I tried testing it with a `const Link` instead of a `const Link*`.
+    However, after catching that issue, we're chilling :)
+    
+
 12. Why did we define two versions of find()?
-
-13. Modify the Link class from §17.10.1 to hold a value of a `struct God`. 
-    `struct God` should have members of type `string`: name, mythology, vehicle, and weapon. 
-    For example, 
-        `God{"Zeus", "Greek", "", "lightning"}`
-    and 
-        `God{"Odin", "Norse", "Eight-legged flying horse called Sleipner", "Spear called Gungnir"}` 
-    
-    Write a print_all() function that lists gods with their attributes one per line. 
-    
-    Add a member function add_ordered() that places its new element in its correct lexicographical position. 
-    
-    Using the Links with the values of type God, make a list of gods from three mythologies; 
-    then move the elements (gods) from that list to three lexicographically ordered lists — one for each mythology.
-
-
-14. Could the “list of gods” example from §17.10.1 have been written using a singly-linked list; 
-    that is, could we have left the prev member out of Link? 
-    Why might we want to do that? For what kind of examples would it make sense to use a singly-linked list? 
-    
-    Re-implement that example using only a singly-linked list.
 */
 
 #include <iostream>
@@ -43,7 +27,21 @@ public:
     string value;
     // constructor
     Link(const string& v, Link* p = nullptr, Link* s = nullptr)
-        : value{v}, prev{p}, succ{s} {}
+        : value{v}, prev{p}, succ{s} {
+            /*
+            previously tried:
+                ```
+                p->succ = this;
+                s->prev = this;
+                ```
+            however, this resulted in a segmentation fault :(
+
+            imo, this constructor is flawed because it only makes connections
+            from current node to `p`/`s`, not the other way around.  Useless for `const Link`.
+
+            Actually -- a `const Lin` isn't meaningful.  A `const Link*` is, though.
+            */
+         }
     // operations
     Link* insert(Link* n);                      // insert `n` before current object
     Link* add(Link* n);                         // insert `n` after  current object
@@ -53,6 +51,13 @@ public:
     Link* advance(int n) /*const*/;                 // advance pointer `n` positions in linked list
     Link* next() const { return succ; }         // advance pointer +1 position in linked list
     Link* previous() const { return prev; }     // advance pointer -1 position in linked list
+
+    /*
+    // adding because I can't figure out the const Linked list as-is :(
+    void set_next(Link* n) { succ = n; }
+    void set_prev(Link* n) { prev = n; }
+    void set_next(const Link* n) { succ = n; }
+    */
 private:
     Link* prev;
     Link* succ;
@@ -105,6 +110,7 @@ Link* Link::find(const string& s)
 // find Link containing string `s` if any;
 // otherwise return `nullptr`
 {
+    cout << "    ... this is the non-const version of ::find()\n";
     // search from current position to front
     Link* curr = this;
     while(curr != nullptr) {
@@ -126,6 +132,11 @@ const Link* Link::find(const string& s) const
 // find Link containing string `s` if any;
 // otherwise return `nullptr`
 {
+    cout << "    ... this is the const version of ::find()\n";
+
+    if (s == value)
+        return this;
+
     Link curr_link = *this; // make a copy
     Link* curr = &curr_link;
 
@@ -365,6 +376,7 @@ bool test_find() {
 
     return true;
 }
+
 bool test_find_const() {
     // setup
     Link a {"A"};
@@ -372,17 +384,42 @@ bool test_find_const() {
     Link c {"C"};
     a.add(&b);  // A <-> B
     b.add(&c);  // A <-> B <-> C
+    const Link* bp = &b;
+
+    const Link* retc0 = bp->find("B");
+    if (retc0 != &b) {
+        cout << "    ... b.find(\"B\") failed (const version)\n";
+        return false;
+    }
+    const Link* retc1 = bp->find("meme");
+    if (retc1 != nullptr) {
+        cout << "    ... b.find(\"meme\") failed (const version)\n";
+        return false;
+    }
+    const Link* retc2 = bp->find("A");
+    if (retc2 != &a) {
+        cout << "    ... b.find(\"A\") failed (const version)\n";
+        return false;
+    }
+
+    Link* ret = a.find("B");
+    if (ret != &b) {
+        cout << "    ... a.find(\"B\") failed (non-const version)\n";
+        return false;
+    }
     
     return true;
 }
 
+
 void run_tests() {
-    cout << "... testing construction:               \n" << test_construction() << '\n';
-    cout << "... testing Link::add():                \n" << test_add() << '\n';
-    cout << "... testing Link::insert():             \n" << test_insert() << '\n';
-    cout << "... testing Link::erase():              \n" << test_insert() << '\n';
-    cout << "... testing Link::advance(int n):       \n" << test_advance() << '\n';
-    cout << "... testing Link::find(const string& s):\n" << test_find() << '\n';
+    cout << "... testing construction:                                 \n" << test_construction() << '\n';
+    cout << "... testing Link* Link::add():                            \n" << test_add() << '\n';
+    cout << "... testing Link* Link::insert():                         \n" << test_insert() << '\n';
+    cout << "... testing Link* Link::erase():                          \n" << test_insert() << '\n';
+    cout << "... testing Link* Link::advance(int n):                   \n" << test_advance() << '\n';
+    cout << "... testing Link* Link::find(const string& s):            \n" << test_find() << '\n';
+    cout << "... testing const Link* Link::find(const string& s) const:\n" << test_find_const() << '\n';
 }
 
 
