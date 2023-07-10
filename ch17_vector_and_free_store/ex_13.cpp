@@ -201,6 +201,26 @@ Link* Link::add_ordered(Link* n)
 // Places new element in correct lexicographical position and return `n`;
 // For `Link`s with value of type `God`, comparisons will just be based on first name.
 {
+    if (n == nullptr) return this;
+
+    // first, let's get to the first `Link` in the list (not checking for cycles, though.)
+    Link* l = this;
+    while (l->previous())
+        l = l->previous();
+
+    // now, go from front to back and see where new Link* belongs.
+    while(l) {
+        // if `n`'s value comes before current node, insert `n` before current node!
+        if (n->value.name < l->value.name) {
+            l->insert(n);
+            return n;
+        }
+        l = l->next();
+    }
+    // if we haven't returned, that means we went through the whole list
+    // and `n` doesn't belong in front of any node, which means it belongs
+    // at the back.
+    l->add(n);
     return n;
 }
 
@@ -457,6 +477,72 @@ bool test_find_const() {
     
     return true;
 }
+bool test_add_ordered() {
+    // setup
+    God ga {"A", "A", "A", "A"};
+    God gc {"C", "C", "C", "C"};
+    God ge {"E", "E", "E", "E"};
+    Link a {ga};
+    Link c {gc};
+    Link e {ge};
+    a.add(&c);  // A <-> C
+    c.add(&e);  // A <-> C <-> E
+
+    God gfront {"a", "", "", ""};
+    Link newfront {gfront};
+    God gb {"B", "B", "B", "B"};
+    Link b {gb};
+    God gd {"D", "D", "D", "D"};
+    Link d {gd};
+    God gz {"Z", "Z", "Z", "Z"};
+    Link z {gz};
+
+    Link* ret;
+    cout << "Before any operations:\n";
+    print_all(&c);
+    // Case 0: add nullptr
+    ret = c.add_ordered(nullptr);
+    if (ret != &c) {
+        cout << "   ... c.add_ordered(nullptr) failed\n";
+        return false;
+    }
+    // Case 1: add something after current link, but not end of list
+    ret = c.add_ordered(&d);
+    if (ret != &d || c.next() != &d || d.previous() != &c || d.next() != &e || e.previous() != &d) {
+        cout << "   ... c.add_ordered(&d) failed\n";
+        return false;
+    }
+    cout << "After c.add_ordered(&d):\n";
+    print_all(&c);
+    // case 2: add something before current link
+    ret = c.add_ordered(&b);
+    if (ret != &b || c.previous() != &b || b.next() != &c || a.next() != &b || b.previous() != &a) {
+        cout << "   ... c.add_ordered(&b) failed\n";
+        return false;
+    }
+    cout << "After c.add_ordered(&b):\n";
+    print_all(&c);
+
+    // // case 2b: add something to front of list
+    // ret = c.add_ordered(&newfront);
+    // if (ret != &newfront || newfront.previous() != nullptr || newfront.next() != &a || a.previous() != &newfront) {
+    //     cout << "   ... c.add_ordered(&newfront) failed\n";
+    //     return false;
+    // }
+    // cout << "After c.add_ordered(&newfront):\n";
+    // print_all(&c);
+
+    // // case 3: add something to end of entire list
+    // ret = c.add_ordered(&z);
+    // if (ret != &z || z.previous() != &e || e.next() != &z || z.next() != nullptr) {
+    //     cout << "   ... c.add_ordered(&z) failed\n";
+    //     return false;
+    // }
+    // cout << "After c.add_ordered(&z):\n";
+    // print_all(&c);
+
+    return true;
+}
 void run_tests() {
     cout << "... testing construction:                                 \n" << test_construction() << '\n';
     cout << "... testing Link* Link::add():                            \n" << test_add() << '\n';
@@ -465,6 +551,7 @@ void run_tests() {
     cout << "... testing Link* Link::advance(int n):                   \n" << test_advance() << '\n';
     cout << "... testing Link* Link::find(const string& s):            \n" << test_find() << '\n';
     cout << "... testing const Link* Link::find(const string& s) const:\n" << test_find_const() << '\n';
+    cout << "... testing Link* Link::add_ordered(...):                 \n" << test_add_ordered() << '\n';
 }
 
 // ---
