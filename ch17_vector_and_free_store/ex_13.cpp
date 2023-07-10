@@ -8,7 +8,7 @@
     
     x Write a print_all() function that lists gods with their attributes one per line. 
     
-    Add a member function add_ordered() that places its new element in its correct lexicographical position. 
+    x Add a member function add_ordered() that places its new element in its correct lexicographical position. 
     
     Using the Links with the values of type God, 
         x make a list of gods from three mythologies; 
@@ -102,13 +102,20 @@ Link* Link::erase()
 //      - if no `Link`s after current, return current end `Link`
 //      - if the list is now empty, return `nullptr`
 {
-    if (prev != nullptr)
-        prev->succ = succ;
-    if (succ != nullptr) {
-        succ->prev = prev;
-        return succ;
+    // capture existing pointers
+    Link* p = prev;
+    Link* s = succ;
+    // nullify `this` Link's pointers, since it's no longer part of the list
+    prev = nullptr;
+    succ = nullptr;
+    // link up neighboring nodes
+    if (p != nullptr)
+        p->succ = s;
+    if (s != nullptr) {
+        s->prev = p;
+        return s;
     } else
-        return prev;
+        return p;
 }
 
 Link* Link::find(const God& s)
@@ -202,14 +209,12 @@ Link* Link::add_ordered(Link* n)
 // For `Link`s with value of type `God`, comparisons will just be based on first name.
 {
     if (n == nullptr) return this;
-
     // first, let's get to the first `Link` in the list (not checking for cycles, though.)
     Link* l = this;
     while (l->previous())
         l = l->previous();
-
     // now, go from front to back and see where new Link* belongs.
-    while(l) {
+    while(l->next()) {
         // if `n`'s value comes before current node, insert `n` before current node!
         if (n->value.name < l->value.name) {
             l->insert(n);
@@ -217,10 +222,11 @@ Link* Link::add_ordered(Link* n)
         }
         l = l->next();
     }
-    // if we haven't returned, that means we went through the whole list
-    // and `n` doesn't belong in front of any node, which means it belongs
-    // at the back.
-    l->add(n);
+    // last check: does `n` belong before or after last node?
+    if (n->value.name < l->value.name)
+        l->insert(n);
+    else
+        l->add(n);
     return n;
 }
 
@@ -477,7 +483,7 @@ bool test_find_const() {
     
     return true;
 }
-bool test_add_ordered() {
+bool test_add_ordered(bool printout=true) {
     // setup
     God ga {"A", "A", "A", "A"};
     God gc {"C", "C", "C", "C"};
@@ -488,7 +494,7 @@ bool test_add_ordered() {
     a.add(&c);  // A <-> C
     c.add(&e);  // A <-> C <-> E
 
-    God gfront {"a", "", "", ""};
+    God gfront {"!", "", "", ""};
     Link newfront {gfront};
     God gb {"B", "B", "B", "B"};
     Link b {gb};
@@ -498,8 +504,10 @@ bool test_add_ordered() {
     Link z {gz};
 
     Link* ret;
-    cout << "Before any operations:\n";
-    print_all(&c);
+    if (printout) {
+        cout << "Before any operations:\n";
+        print_all(&c);
+    }
     // Case 0: add nullptr
     ret = c.add_ordered(nullptr);
     if (ret != &c) {
@@ -512,35 +520,40 @@ bool test_add_ordered() {
         cout << "   ... c.add_ordered(&d) failed\n";
         return false;
     }
-    cout << "After c.add_ordered(&d):\n";
-    print_all(&c);
+    if (printout) {
+        cout << "After c.add_ordered(&d):\n";
+        print_all(&c);
+    }
     // case 2: add something before current link
     ret = c.add_ordered(&b);
     if (ret != &b || c.previous() != &b || b.next() != &c || a.next() != &b || b.previous() != &a) {
         cout << "   ... c.add_ordered(&b) failed\n";
         return false;
     }
-    cout << "After c.add_ordered(&b):\n";
-    print_all(&c);
-
-    // // case 2b: add something to front of list
-    // ret = c.add_ordered(&newfront);
-    // if (ret != &newfront || newfront.previous() != nullptr || newfront.next() != &a || a.previous() != &newfront) {
-    //     cout << "   ... c.add_ordered(&newfront) failed\n";
-    //     return false;
-    // }
-    // cout << "After c.add_ordered(&newfront):\n";
-    // print_all(&c);
-
-    // // case 3: add something to end of entire list
-    // ret = c.add_ordered(&z);
-    // if (ret != &z || z.previous() != &e || e.next() != &z || z.next() != nullptr) {
-    //     cout << "   ... c.add_ordered(&z) failed\n";
-    //     return false;
-    // }
-    // cout << "After c.add_ordered(&z):\n";
-    // print_all(&c);
-
+    if (printout) {
+        cout << "After c.add_ordered(&b):\n";
+        print_all(&c);
+    }
+    // case 2b: add something to front of list
+    ret = c.add_ordered(&newfront);
+    if (ret != &newfront || newfront.previous() != nullptr || newfront.next() != &a || a.previous() != &newfront) {
+        cout << "   ... c.add_ordered(&newfront) failed\n";
+        return false;
+    }
+    if (printout) {
+        cout << "After c.add_ordered(&newfront):\n";
+        print_all(&c);
+    }
+    // case 3: add something to end of entire list
+    ret = c.add_ordered(&z);
+    if (ret != &z || z.previous() != &e || e.next() != &z || z.next() != nullptr) {
+        cout << "   ... c.add_ordered(&z) failed\n";
+        return false;
+    }
+    if (printout) {
+        cout << "After c.add_ordered(&z):\n";
+        print_all(&c);
+    }
     return true;
 }
 void run_tests() {
@@ -551,12 +564,13 @@ void run_tests() {
     cout << "... testing Link* Link::advance(int n):                   \n" << test_advance() << '\n';
     cout << "... testing Link* Link::find(const string& s):            \n" << test_find() << '\n';
     cout << "... testing const Link* Link::find(const string& s) const:\n" << test_find_const() << '\n';
-    cout << "... testing Link* Link::add_ordered(...):                 \n" << test_add_ordered() << '\n';
+    cout << "... testing Link* Link::add_ordered(...):                 \n" << test_add_ordered(false) << '\n';
 }
 
 // ---
 // code for completing ex13
 void ex13() {
+    cout << "----------------------------------------------------------------------------------------------------\n";
     // instantiate the gods
     God zeus {"zeus", "greek", "", "lightning"};
     God poseidon {"poseidon", "greek", "", "trident"};
@@ -568,7 +582,7 @@ void ex13() {
     God thor {"thor", "norse", "", "hammer"};
     God freia {"freia", "norse", "", ""};
 
-    cout << "Test print: " << zeus << '\n';
+    // cout << "Test print: " << zeus << '\n';
 
     // make the individual links
     Link gz {zeus};
@@ -590,7 +604,43 @@ void ex13() {
     no.add(&nt);
     nt.add(&nf);
 
+    cout << "ALl in one list:\n";
     print_all(&gz);
+
+    // now, putting the nodes into a lexographically ordered list
+    Link* greek_pantheon = &gz;
+    Link* roman_pantheon = &rj;
+    Link* norse_pantheon = &no;
+
+    // ... greek
+    gz.erase();
+    gp.erase();
+    ga.erase();
+    cout << "Removed Greek gods from the big list:\n";
+    print_all(&nf);
+    greek_pantheon->add_ordered(&gp);
+    greek_pantheon->add_ordered(&ga);
+    cout << "Inserted Greek gods into their own pantheon:\n";
+    print_all(greek_pantheon);
+
+    // ... roman
+    rj.erase();
+    rn.erase();
+    rm.erase();
+    cout << "Removed Roman gods from the big list:\n";
+    print_all(&nf);
+    roman_pantheon->add_ordered(&rn);
+    roman_pantheon->add_ordered(&rm);
+    cout << "Inserted Roman gods into their own pantheon:\n";
+    print_all(roman_pantheon);
+
+    // ... norse
+    nt.erase();
+    nf.erase();
+    norse_pantheon->add_ordered(&nt);
+    norse_pantheon->add_ordered(&nf);
+    cout << "Inserted Norse gods into their own pantheon:\n";
+    print_all(norse_pantheon);
 }
 
 int main() {
