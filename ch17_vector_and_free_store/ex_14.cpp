@@ -34,7 +34,7 @@ public:
     // operations
     Link* insert(Link* n, Link* target=nullptr);    // insert `n` before `target` or current object
     Link* add(Link* n);                             // insert `n` after current object
-    Link* erase();                                  // remove current object from linked list
+    Link* erase(Link* target=nullptr);              // remove current object or `target` from linked list
     Link* find(const string& s);                    // find Link containing string `s`
     const Link* find(const string& s) const;        // find Link containing string `s` within const list
     Link* advance(int n) /*const*/;                 // advance pointer `n` positions in linked list
@@ -88,11 +88,12 @@ Link* Link::add(Link* n)
     return n;
 }
 
-Link* Link::erase()
-// remove current object from linked list (and return "successor")
-//      - if there are any `Link`s after current, return next `Link`
-//      - if no `Link`s after current, return current end `Link`
-//      - if the list is now empty, return `nullptr`
+Link* Link::erase(Link* target)
+// Assumption: `this` is the front of the list.
+// If target == nullptr, 
+//      remove current object from linked list and return successor.
+// If target != nullptr,
+//      search through list and remove `target`, having its predecessor point to its successor.
 {
     // if (prev != nullptr)
     //     prev->succ = succ;
@@ -101,6 +102,22 @@ Link* Link::erase()
     //     return succ;
     // } else
     //     return prev;
+    if (target == nullptr)
+        return this->succ;
+    
+    Link* prev = this;
+    Link* curr = this->next();
+    while(curr) {
+        // we've found our match!  remove `target` from list
+        if (curr == target) {
+            prev->succ = target->succ;
+            break;
+        }
+        // advance along list
+        prev = curr;
+        curr = curr->next();
+    }
+    // return front of list
     return this;
 }
 
@@ -317,27 +334,41 @@ bool test_erase() {
     Link c {"C"};
     a.add(&b);  // A <-> B
     b.add(&c);  // A <-> B <-> C
+    Link* list = &a;
+
+    cout << "    Original list: ";
+    print_all(list);
+    cout << "\n";
 
     // case 1: erase middle node, get `&c` back
-    Link* ret = b.erase();
-    if(ret != &c || a.next() != &c) {
-        cout << "    ... b.erase() failed\n";
+    Link* ret = list->erase(&b);
+    if(ret != list || a.next() != &c) {
+        cout << "    ... list->erase(&b) failed\n";
         return false;
     }
+    cout << "    After erase &b ";
+    print_all(list);
+    cout << "\n";
 
     // case 2: erase `c`, get `&a` back
-    ret = c.erase();
-    if(ret != &a || a.next() != nullptr) {
-        cout << "    ... c.erase() failed\n";
+    ret = list->erase(&c);
+    if(ret != list || a.next() != nullptr) {
+        cout << "    ... list->erase(&c) failed\n";
         return false;
     }
+    cout << "    After erase &c ";
+    print_all(list);
+    cout << "\n";
 
     // case 3: erasing last `Link` in the list, get `nullptr` back
-    ret = a.erase();
-    if(ret != nullptr) {
-        cout << "    ... a.erase() failed\n";
+    list = list->erase();
+    if(list != nullptr) {
+        cout << "    ... list->erase() failed\n";
         return false;
     }
+    cout << "    After erase &a ";
+    print_all(list);
+    cout << "\n";
 
     return true;
 }
@@ -459,7 +490,7 @@ void run_tests() {
     cout << "... testing construction:                                 \n" << test_construction() << '\n';
     cout << "... testing Link* Link::add():                            \n" << test_add() << '\n';
     cout << "... testing Link* Link::insert():                         \n" << test_insert() << '\n';
-    // cout << "... testing Link* Link::erase():                          \n" << test_insert() << '\n';
+    cout << "... testing Link* Link::erase():                          \n" << test_erase() << '\n';
     // cout << "... testing Link* Link::advance(int n):                   \n" << test_advance() << '\n';
     // cout << "... testing Link* Link::find(const string& s):            \n" << test_find() << '\n';
     // cout << "... testing const Link* Link::find(const string& s) const:\n" << test_find_const() << '\n';
