@@ -11,13 +11,20 @@
 
     Why might we want to do that? For what kind of examples would it make sense to use a singly-linked list? 
     
+        Singly linked list:
+        - if we're *very* low on memory (where storing prev pointer is too much)
+        - if the links form a cycle
+        - a unidirectional tree structure
+
     Re-implement that example using only a singly-linked list.
 
-    **Big change: each operation returns the (new) *front* of the linked list.
+    **Big change: some operations returns the (new) *front* of the linked list.
         Otherwise, it's impossible to traverse backwards and I can't implement some of the member functions!
 
         This also means that each function assumes that it is being called from the front of the linked list
         (or that the user intended a subset of the singly linked list to be used).
+
+    **erase is called from front of list on a specific link, requiring a minor change to code from 17.10.1.
 */
 
 #include <iostream>
@@ -455,6 +462,9 @@ void run_tests() {
 }
 
 void book_17_10_1() {
+
+    cout << "------------------------------------------------------------------------------------------\n";
+
     Link* norse_gods = new Link{"Thor"};
     norse_gods = norse_gods->insert(new Link{"Odin"});
     norse_gods = norse_gods->insert(new Link{"Zeus"});
@@ -465,24 +475,41 @@ void book_17_10_1() {
     greek_gods = greek_gods->insert(new Link{"Mars"});
     greek_gods = greek_gods->insert(new Link{"Poseidon"});
 
+    cout << "====== Initial state:\n";
+    cout << "Norse: ";
+    print_all(norse_gods);
+    cout << "\n";
+    cout << "Greek: ";
+    print_all(greek_gods);
+    cout << "\n";
+
     // Mars (Roman) -> Ares (Greek)
     Link* p = greek_gods->find("Mars");
     if (p)
         p->value = "Ares";
 
+    cout << "====== After 'Mars' -> 'Ares' rename:\n";
+    cout << "Norse: ";
+    print_all(norse_gods);
+    cout << "\n";
+    cout << "Greek: ";
+    print_all(greek_gods);
+    cout << "\n";
+
     // Move Zeus from norse -> greek pantheon
     Link* p2 = norse_gods->find("Zeus");
     if (p2) {
         if (p2 == norse_gods) norse_gods = p2->next();
-        p2->erase();
+        // p2->erase();
+        norse_gods->erase(p2); // can't do exactly like before, because erase needs to join up links
         greek_gods = greek_gods->insert(p2);
     }
 
-    cout << "Norse:\n";
+    cout << "====== After moving Zeus from norse -> green list:\n";
+    cout << "Norse: ";
     print_all(norse_gods);
     cout << "\n";
-
-    cout << "Greek:\n";
+    cout << "Greek: ";
     print_all(greek_gods);
     cout << "\n";
 }
@@ -490,5 +517,6 @@ void book_17_10_1() {
 
 int main() {
     run_tests();
+    book_17_10_1();
     return 0;
 }
