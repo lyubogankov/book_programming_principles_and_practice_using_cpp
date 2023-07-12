@@ -120,22 +120,12 @@ Link* Link::find(const string& s)
 // otherwise return `nullptr`
 {
     cout << "    ... this is the non-const version of ::find()\n";
-
-    // // Can no longer do this, because we can only move in one direction!
-    // // search from current position to front
-    // Link* curr = this;
-    // while(curr != nullptr) {
-    //     if (curr->value == s) return curr;
-    //     curr = curr->prev;
-    // }
-
-    // if we get here, we should search current position to back
+    // search from current link -> end of list
     Link* curr = this;
     while(curr != nullptr) {
         if (curr -> value == s) return curr;
         curr = curr->succ;
     }
-
     // if we get here, we did not find the desired string.
     return nullptr;
 }
@@ -150,21 +140,11 @@ const Link* Link::find(const string& s) const
 
     Link curr_link = *this; // make a copy
     Link* curr = &curr_link;
-
-    // // Can only search front -> back, backwards
-    // // search from current position to front
-    // while(curr != nullptr) {
-    //     if (curr->value == s) return curr;
-    //     curr = curr->prev;
-    // }
-    // curr = &curr_link; // reset to curr_link
-
     // if we get here, we should search current position to back
     while(curr != nullptr) {
         if (curr -> value == s) return curr;
         curr = curr->succ;
     }
-
     // if we get here, we did not find the desired string.
     return nullptr;
 }
@@ -415,9 +395,9 @@ bool test_find() {
         cout << "    ... b.find(\"C\") failed\n";
         return false;
     }
-    // case 4: string is behind current link
+    // case 4: string is behind current link - shouldn't be able to find
     ret = b.find("A");
-    if (ret != &a) {
+    if (ret != nullptr) {
         cout << "    ... b.find(\"A\") failed\n";
         return false;
     }
@@ -444,8 +424,13 @@ bool test_find_const() {
         return false;
     }
     const Link* retc2 = bp->find("A");
-    if (retc2 != &a) {
+    if (retc2 != nullptr) {
         cout << "    ... b.find(\"A\") failed (const version)\n";
+        return false;
+    }
+    const Link* retc3 = bp->find("C");
+    if (retc3 != &c) {
+        cout << "    ... b.find(\"C\") failed (const version)\n";
         return false;
     }
 
@@ -465,8 +450,8 @@ void run_tests() {
     cout << "... testing Link* Link::insert():                         \n" << test_insert() << '\n';
     cout << "... testing Link* Link::erase():                          \n" << test_erase() << '\n';
     cout << "... testing Link* Link::advance(int n):                   \n" << test_advance() << '\n';
-    // cout << "... testing Link* Link::find(const string& s):            \n" << test_find() << '\n';
-    // cout << "... testing const Link* Link::find(const string& s) const:\n" << test_find_const() << '\n';
+    cout << "... testing Link* Link::find(const string& s):            \n" << test_find() << '\n';
+    cout << "... testing const Link* Link::find(const string& s) const:\n" << test_find_const() << '\n';
 }
 
 void book_17_10_1() {
