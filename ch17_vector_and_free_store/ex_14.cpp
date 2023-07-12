@@ -95,13 +95,6 @@ Link* Link::erase(Link* target)
 // If target != nullptr,
 //      search through list and remove `target`, having its predecessor point to its successor.
 {
-    // if (prev != nullptr)
-    //     prev->succ = succ;
-    // if (succ != nullptr) {
-    //     succ->prev = prev;
-    //     return succ;
-    // } else
-    //     return prev;
     if (target == nullptr)
         return this->succ;
     
@@ -178,37 +171,24 @@ const Link* Link::find(const string& s) const
 
 Link* Link::advance(int n) /*const*/
 // advance pointer `n` positions in linked list and return new `Link` if possible;
-// otherwise return `nullptr
+// otherwise return `nullptr`
 {
-
-    // Link* curr = this;
-        
-    // // wasn't sure how to get around `const` in function!  that means it's not supposed to
-    // // mess with internal state of current object, so we're making a copy.
-
-    // // move forward
-    // if (n > 0) {
-    //     while(curr != nullptr && n > 0) {
-    //         curr = curr->succ;
-    //         n--;
-    //     }
-    //     // if n > 0, that means we hit end of list before reaching nth `Link`.
-    //     if (n > 0)
-    //         return nullptr;
-    //     // otherwise, we hit the `Link` we wanted!
-    //     return curr;
-    // } 
-    // // move backwards
-    // else {
-    //     while(curr != nullptr && n < 0) {
-    //         curr = curr->prev;
-    //         n++;
-    //     }
-    //     if (n < 0)
-    //         return nullptr;
-    //     return curr;
-    // }
-    return this;
+    if (n == 0)
+        return this;
+    else if (n > 0) {
+        Link* curr = this;
+        while(curr != nullptr && n > 0) {
+            curr = curr->succ;
+            n--;
+        }
+        // if n > 0, that means we hit end of list before reaching nth `Link`.
+        if (n > 0)
+            return nullptr;
+        // otherwise, we hit the `Link` we wanted!
+        return curr;
+    }
+    // if negative, return nullptr
+    return nullptr;
 }
 
 void print_all(Link* p) {
@@ -399,16 +379,10 @@ bool test_advance() {
         cout << "    ... b.advance(2) failed\n";
         return false;
     }
-    // case 4: advance by negative integer within list bounds, should get Link* back
+    // case 4: advance by negative integer, should get nullptr back
     ret = b.advance(-1);
-    if(ret != &a) {
-        cout << "    ... a.advance(-1) failed\n";
-        return false;
-    }
-    // case 5: advance by negative integer outside list bounds, should get nullptr back
-    ret = b.advance(-2);
     if(ret != nullptr) {
-        cout << "    ... b.advance(-2) failed\n";
+        cout << "    ... a.advance(-1) failed\n";
         return false;
     }
 
@@ -450,7 +424,6 @@ bool test_find() {
 
     return true;
 }
-
 bool test_find_const() {
     // setup
     Link a {"A"};
@@ -491,7 +464,7 @@ void run_tests() {
     cout << "... testing Link* Link::add():                            \n" << test_add() << '\n';
     cout << "... testing Link* Link::insert():                         \n" << test_insert() << '\n';
     cout << "... testing Link* Link::erase():                          \n" << test_erase() << '\n';
-    // cout << "... testing Link* Link::advance(int n):                   \n" << test_advance() << '\n';
+    cout << "... testing Link* Link::advance(int n):                   \n" << test_advance() << '\n';
     // cout << "... testing Link* Link::find(const string& s):            \n" << test_find() << '\n';
     // cout << "... testing const Link* Link::find(const string& s) const:\n" << test_find_const() << '\n';
 }
