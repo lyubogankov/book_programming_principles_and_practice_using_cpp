@@ -60,7 +60,8 @@ char* strdup(const char* s)
     int s_len = c_strlen(s);
     int x_len = c_strlen(x);
     // can't find substring if 'substring' is larger than search string!
-    if (x_len > s_len)
+    // also, if either the search or find strings only contain null terminator or are blank, also can't find substr.
+    if (x_len > s_len || s_len <= 1 || x_len <= 1)
         return nullptr;
     
     int xi = 0;
@@ -80,7 +81,18 @@ char* strdup(const char* s)
 int strcmp(const char* s1, const char* s2)
 // 3. lexographically compares C-style strings. Return vals: -1 means s1 < s2, 0 means s1 == s2, +1 means s1 > s2
 {
-
+    while(*s1 && *s2) {
+        if(*s1 < *s2) return -1;
+        if(*s1 > *s2) return  1;
+        s1++;
+        s2++;
+    }
+    // special case: if one of the strings, `x`, is a substring of the other (`y`) and starts and idx 0, 
+    // the loop will terminate since all chars are equal until one of the strings is exhausted.
+    // however, we can't say for certain yet that they're exactly the same string!
+    if(*s1) return  1;  // s1 >  s2 (s1 still has characters left)
+    if(*s2) return -1;  // s1  < s2 (s2 still has characters left)
+    return 0;           // s1 == s2 (neither s1 nor s2 have chars left)
 }
 
 
@@ -92,6 +104,7 @@ int main() {
     cout << "og:  " << og  << "   len: " << c_strlen(og)  << "    vs book's: " << book_c_strlen(og)  << '\n'
          << "dup: " << dup << "   len: " << c_strlen(dup) << "    vs book's: " << book_c_strlen(dup) << "\n\n";
     delete[] dup;
+
 
     // testing 2.
     char empty_string[] {""};
@@ -115,6 +128,16 @@ int main() {
     cout << "case 5: `x` has fewer char than `s` and is     contained within `s`: " << '\n';
     cout << "\t `result == nullptr`          ?  " << (result==nullptr) << '\n'
          << "\t `result == (&haystack + 12)` ?  " << (result == (haystack + 12)) << "\n\n";
+
+
+    // testing 3.
+    char special_substr[] {"abcd"};
+    cout << "case 1: `s1` empty:  " << strcmp(empty_string, haystack) << "\t\ts1: " << empty_string << "    s2: " << haystack << '\n'
+         << "case 2: `s2` empty:  " << strcmp(haystack, empty_string) << "\t\ts1: " << haystack << "    s2: " << empty_string << '\n'
+         << "case 3: `s1  < s2`:  " << strcmp(is_substr, isnt_substr) << "\t\ts1: " << is_substr << "    s2: " << isnt_substr << '\n'
+         << "case 4: `s1 > s2` :  " << strcmp(isnt_substr, is_substr) << "\t\ts1: " << isnt_substr << "    s2: " << is_substr << '\n'
+         << "case 5: `s1 == s2`:  " << strcmp(is_substr, is_substr)   << '\n'
+         << "case 6: `s1` is substring of `s2`, starting at idx0:  " << strcmp(haystack, special_substr) << "\t\ts1: " << haystack << "    s2: " << special_substr << '\n';
 
     return 0;
 }
