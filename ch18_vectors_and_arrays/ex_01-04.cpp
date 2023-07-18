@@ -36,23 +36,85 @@ int c_strlen(const char* s)
         s_len++;
     return s_len + 1;
 }
+int book_c_strlen(const char* s) 
+// does NOT include the null terminator
+{
+    int len = 0;
+    while(*s) { ++len; ++s; }
+    return len;
+}
 
-// 1.
-char* strdup(const char* s) {
+char* strdup(const char* s) 
+// 1. copies a C-style string into memory it allocates on the free store
+{
     int s_len = c_strlen(s);
     char* dup = new char[s_len];
     for(int i=0; i<s_len; i++)
         *(dup + sizeof(char)*i) = *(s + sizeof(char)*i);
     return dup;
 }
+ char* findx(const char* s, const char* x)
+// 2. finds the first occurrence of the C-style string x in s
+// TIL about `const_cast<T>`!  https://en.cppreference.com/w/cpp/language/const_cast
+{
+    int s_len = c_strlen(s);
+    int x_len = c_strlen(x);
+    // can't find substring if 'substring' is larger than search string!
+    if (x_len > s_len)
+        return nullptr;
+    
+    int xi = 0;
+    // iterate over all non-terminating characters in s
+    for(int si=0; si<(s_len-1); si++) {
+        // xi^th char in x matches si^th char in s!
+        if (*(s + si*sizeof(char)) == *(x + xi*sizeof(char))) {
+            // x_len is 1-indexed and inclusive of '\0', so we terminate when we're at the last non-terminating char
+            if (xi == x_len - 2)
+                return const_cast<char*>(s + (si-xi)*sizeof(char));
+            xi++;
+        }
+    }
+    return nullptr;
+}
+
+int strcmp(const char* s1, const char* s2)
+// 3. lexographically compares C-style strings. Return vals: -1 means s1 < s2, 0 means s1 == s2, +1 means s1 > s2
+{
+
+}
+
 
 int main() {
-    char s[] {"meme"};
-    char* dup = strdup(s);
 
-    cout << "s:   " << s   << "   len: " << c_strlen(s)   << '\n'
-         << "dup: " << dup << "   len: " << c_strlen(dup) << '\n';
-
+    // testing 1.
+    char og[] {"woah."};
+    char* dup = strdup(og);
+    cout << "og:  " << og  << "   len: " << c_strlen(og)  << "    vs book's: " << book_c_strlen(og)  << '\n'
+         << "dup: " << dup << "   len: " << c_strlen(dup) << "    vs book's: " << book_c_strlen(dup) << "\n\n";
     delete[] dup;
+
+    // testing 2.
+    char empty_string[] {""};
+    char is_substr[] {"mnop"};
+    char isnt_substr[] {"zyxw"};
+    char haystack[] {"abcdefghijklmnopqrstuvwxyz"};
+
+    char* result = findx(empty_string, isnt_substr);
+    cout << "case 1: `s` is an empty string                                      (testing `result == nullptr`):  " << (result==nullptr) << '\n';
+
+    result = findx(haystack, empty_string);
+    cout << "case 2: `x` is an empty string                                      (testing `result == nullptr`):  " << (result==nullptr) << '\n';
+
+    result = findx(isnt_substr, haystack);
+    cout << "case 3: `x` has more characters than `s`                            (testing `result == nullptr`):  " << (result==nullptr) << '\n';
+
+    result = findx(haystack, isnt_substr);
+    cout << "case 4: `x` has fewer char than `s` but is not contained within `s` (testing `result == nullptr`):  " << (result==nullptr) << '\n';
+
+    result = findx(haystack, is_substr);
+    cout << "case 5: `x` has fewer char than `s` and is     contained within `s`: " << '\n';
+    cout << "\t `result == nullptr`          ?  " << (result==nullptr) << '\n'
+         << "\t `result == (&haystack + 12)` ?  " << (result == (haystack + 12)) << "\n\n";
+
     return 0;
 }
