@@ -24,3 +24,35 @@
     giving the maximum number of elements allowed in argument strings. 
     Then, test that with correct C-style strings and “bad” strings.
 */
+
+#include <iostream>
+using std::cout;
+
+int c_strlen(const char* s) 
+// Returns the length of the C-style string, *including* '\0'
+{
+    int s_len = 0;
+    while(*(s + sizeof(char)*s_len) != '\0')
+        s_len++;
+    return s_len + 1;
+}
+
+// 1.
+char* strdup(const char* s) {
+    int s_len = c_strlen(s);
+    char* dup = new char[s_len];
+    for(int i=0; i<s_len; i++)
+        *(dup + sizeof(char)*i) = *(s + sizeof(char)*i);
+    return dup;
+}
+
+int main() {
+    char s[] {"meme"};
+    char* dup = strdup(s);
+
+    cout << "s:   " << s   << "   len: " << c_strlen(s)   << '\n'
+         << "dup: " << dup << "   len: " << c_strlen(dup) << '\n';
+
+    delete[] dup;
+    return 0;
+}
