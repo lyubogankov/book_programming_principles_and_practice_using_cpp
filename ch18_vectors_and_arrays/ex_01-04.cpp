@@ -95,6 +95,15 @@ int strcmp(const char* s1, const char* s2)
     return 0;           // s1 == s2 (neither s1 nor s2 have chars left)
 }
 
+void print_arr(char* arr) {
+    cout << "\"";
+    while(*arr) { 
+        cout << *arr;
+        arr++;
+    }
+    cout << "\"";
+}
+
 
 int main() {
 
@@ -137,7 +146,43 @@ int main() {
          << "case 3: `s1  < s2`:  " << strcmp(is_substr, isnt_substr) << "\t\ts1: " << is_substr << "    s2: " << isnt_substr << '\n'
          << "case 4: `s1 > s2` :  " << strcmp(isnt_substr, is_substr) << "\t\ts1: " << isnt_substr << "    s2: " << is_substr << '\n'
          << "case 5: `s1 == s2`:  " << strcmp(is_substr, is_substr)   << '\n'
-         << "case 6: `s1` is substring of `s2`, starting at idx0:  " << strcmp(haystack, special_substr) << "\t\ts1: " << haystack << "    s2: " << special_substr << '\n';
+         << "case 6: `s1` is substring of `s2`, starting at idx0:  " << strcmp(haystack, special_substr) << "\t\ts1: " << haystack << "    s2: " << special_substr << "\n\n";
+
+    // 4 - non-C-string-char-arrays
+    //      I get a clang warning, and compiler error.  If I run with `-fpermissive` error -> warning.
+    char fakecstr_stack[4] {"woah"};
+    //      Interesting - difference in behavior based on how I initialize the heap char array
+    //          When I use the for loop (even when I exceed array bounds) the duplicate prints/works fine,
+    //            and ending char is always 0 (as int).
+    //
+    //          However, when I use the curly-brace initializer syntax:
+    //          with # chars >= len, `print_arr` prints both the original and duplicate string as "" (totally empty), 
+    //            though heap len reports 2
+    char *fakecstr_heap = new char[4] {"zzzzzzz"};
+    // const int heap_overbound = 10;
+    // for(int i=0; i<heap_overbound; i++)
+    //     *(fakecstr_heap + sizeof(char)*i) = 'z';
+    // cout << int(*(fakecstr_heap + sizeof(char)*heap_overbound)) << '\n';
+    print_arr(fakecstr_heap);
+    cout << '\n';
+
+    // // strdup causes the following error: "munmap_chunk(): invalid pointer  Aborted (core dumped)"
+    // char* fakecstr_dup = strdup(fakecstr_stack);
+    // cout << "duplicate contents (stack): ";
+    // print_arr(fakecstr_dup);
+
+    // delete[] fakecstr_dup;
+    char* fakecstr_duph = strdup(fakecstr_heap);
+    print_arr(fakecstr_duph);
+    cout << "  <- duplicate contents (heap)\n";
+    delete[] fakecstr_duph;
+
+    // findx - before this, cstrlen
+    cout << "len, stack: " << c_strlen(fakecstr_stack) << '\n';
+    cout << "len, heap:  " << c_strlen(fakecstr_heap) << '\n';
+
+    delete[] fakecstr_heap;
+
 
     return 0;
 }
