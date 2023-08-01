@@ -107,7 +107,7 @@ void print_arr(char* arr) {
 
 int main() {
 
-    // testing 1.
+    // testing 1. (strdup)
     char og[] {"woah."};
     char* dup = strdup(og);
     cout << "og:  " << og  << "   len: " << c_strlen(og)  << "    vs book's: " << book_c_strlen(og)  << '\n'
@@ -115,7 +115,7 @@ int main() {
     delete[] dup;
 
 
-    // testing 2.
+    // testing 2. (findx)
     char empty_string[] {""};
     char is_substr[] {"mnop"};
     char isnt_substr[] {"zyxw"};
@@ -139,7 +139,7 @@ int main() {
          << "\t `result == (&haystack + 12)` ?  " << (result == (haystack + 12)) << "\n\n";
 
 
-    // testing 3.
+    // testing 3. (strcmp)
     char special_substr[] {"abcd"};
     cout << "case 1: `s1` empty:  " << strcmp(empty_string, haystack) << "\t\ts1: " << empty_string << "    s2: " << haystack << '\n'
          << "case 2: `s2` empty:  " << strcmp(haystack, empty_string) << "\t\ts1: " << haystack << "    s2: " << empty_string << '\n'
@@ -164,7 +164,7 @@ int main() {
     //     *(fakecstr_heap + sizeof(char)*i) = 'z';
     // cout << int(*(fakecstr_heap + sizeof(char)*heap_overbound)) << '\n';
     print_arr(fakecstr_heap);
-    cout << '\n';
+    cout << " <- this is allegedly what's inside the heap char pointer\n";
 
     // // strdup causes the following error: "munmap_chunk(): invalid pointer  Aborted (core dumped)"
     // char* fakecstr_dup = strdup(fakecstr_stack);
@@ -178,8 +178,30 @@ int main() {
     delete[] fakecstr_duph;
 
     // findx - before this, cstrlen
+    //  stack: 9
+    //  heap:  2
     cout << "len, stack: " << c_strlen(fakecstr_stack) << '\n';
     cout << "len, heap:  " << c_strlen(fakecstr_heap) << '\n';
+
+    // 1: both nullptr (no match)
+    // 2: both nullptr (no match)
+    // 3: both nullptr (no match)
+    // 4: stack matches, heap doesn't
+    cout << "case 1: `x` is empty string:\n"
+         << "    stack: " << (findx(fakecstr_stack, "") == nullptr) << "\n"
+         << "     heap: " << (findx(fakecstr_heap,  "") == nullptr) << "\n"
+
+         << "case 2: `x` larger than `s`:\n"
+         << "    stack: " << (findx(fakecstr_stack, "woahwoahwoah"    ) == nullptr) << "\n"
+         << "     heap: " << (findx(fakecstr_heap,  "zzzzzzzzzzzzzzzz") == nullptr) << "\n"
+
+         << "case 3: `x` has fewer characters than, but is not within, `s`:\n"
+         << "    stack: " << (findx(fakecstr_stack, "no dice") == nullptr) << "\n"
+         << "     heap: " << (findx(fakecstr_heap,  "no dice") == nullptr)<< "\n"
+
+         << "case 4: `x` has fewer characters than, and is within, `s`:\n"
+         << "    stack: " << (findx(fakecstr_stack, "w") == nullptr) << "\n"
+         << "     heap: " << (findx(fakecstr_heap,  "z") == nullptr) << "\n";
 
     delete[] fakecstr_heap;
 
