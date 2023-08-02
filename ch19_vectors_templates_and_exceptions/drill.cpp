@@ -11,9 +11,7 @@
 9. Add a set() function template so that you can change val.
 10. Replace set() with an S<T>::operator=(const T&). Hint: Much simpler than §19.2.5.
 11. Provide const and non-const versions of get().
-
 12. Define a function template<typename T> read_val(T& v) that reads from cin into v.
-
 13. Use read_val() to read into each of the variables from 3 except the S<vector<int>> variable.
 
 14. Bonus: Define input and output operators (>> and <<) for vector<T>s.
@@ -27,7 +25,10 @@ Remember to test after each step.
 #include <string>
 #include <vector>
 
+using std::cin;
 using std::cout;
+using std::istream;
+using std::ostream;
 using std::string;
 using std::vector;
 
@@ -38,6 +39,7 @@ struct S {
 
     // 2. constructor
     S(T t) : val {t} {}
+    S () {} // default constructor
 
     // 5, 6, 11
     T& get();
@@ -60,6 +62,39 @@ template<typename T> S<T>& S<T>::operator=(const T& other) {
         return *this;
     val = other.val;
     return *this;
+}
+
+// 12.
+template<typename T> void read_val(T& v) { cin >> v; }
+
+// 14.
+template<typename T> ostream& operator<<(ostream& os, const vector<T>& vt) {
+    cout << "{ ";
+    for (T t : vt)
+        cout << t << ' ';
+    cout << "}";
+    return os;
+}
+template<typename T> istream& operator>>(istream& is, vector<T>& vt) 
+// this won't work for vector<S<char>>, as the ending '}' will get treated as part of vector :/
+{
+    char c;
+    
+    // starting curly brace
+    is >> c;
+    if (c != '{') throw; // set cin fail or something
+    
+    // contents
+    T t;
+    while(is >> t)
+        vt.push_back( t );
+    is.clear(); // need to recover after it fails to find another `T` after the final one and terminates.
+
+    // ending curly brace
+    is >> c;
+    if (c != '}') throw;
+
+    return is;
 }
 
 void parts_three_and_four() {
@@ -124,11 +159,53 @@ void test_gets() {
     // int& j = si.get_const(); // can't do this with the const version, get compiler error
     cout << "si, using const: " << si.get_const() << '\n';
 }
+// 13.
+void test_read_val() {
+    S<int> si;
+    S<char> sc;
+    S<double> sd;
+    S<string> ss;
+
+    cout << "-----------------\n"
+         << "Testing read_val:\n"
+         << "Please input an integer: ";
+    read_val(si.get());
+    cout << "Please input a char:     ";
+    read_val(sc.get());
+    cout << "Please input a double:   ";
+    read_val(sd.get());
+    cout << "Please input a string:   ";
+    read_val(ss.get());
+
+    cout << "Here are the values you entered:\n"
+         << "si: " << si.get_const() << '\n'
+         << "sc: " << sc.get_const() << '\n'
+         << "sd: " << sd.get_const() << '\n'
+         << "ss: " << ss.get_const() << '\n';
+}
+// 14.
+void test_read_val_vector() {
+
+    // // print works!    
+    // vector<int> vi {1, 2, 3};
+    // cout << vi;
+    // return;
+    
+    S<vector<int>> svi;
+    cout << "------------------------------------\n"
+         << "Testing read_val for vector<T> case:\n"
+         << "Please input vector as '{' <element 1> <element 2> ... <element N> '}'\n:";
+    read_val(svi.get());
+    cout << "Received:\n"
+         << svi.get_const() << '\n';
+}
 
 int main() {
     parts_three_and_four();
     test_set();
     test_equality();
     test_gets();
+    test_read_val();
+    test_read_val_vector();
     return 0;
 }
