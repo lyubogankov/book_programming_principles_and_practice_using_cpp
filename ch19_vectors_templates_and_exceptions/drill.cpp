@@ -69,10 +69,10 @@ template<typename T> void read_val(T& v) { cin >> v; }
 
 // 14.
 template<typename T> ostream& operator<<(ostream& os, const vector<T>& vt) {
-    cout << "{ ";
+    os << "{ ";
     for (T t : vt)
-        cout << t << ' ';
-    cout << "}";
+        os << t << ' ';
+    os << "}";
     return os;
 }
 template<typename T> istream& operator>>(istream& is, vector<T>& vt) 

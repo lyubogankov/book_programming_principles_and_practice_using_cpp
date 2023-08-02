@@ -42,10 +42,10 @@ template<typename T, typename U> double dot_product(const vector<T>& vt, const v
 
 // from drill
 template<typename T> ostream& operator<<(ostream& os, const vector<T>& vt) {
-    cout << "{ ";
+    os << "{ ";
     for (T t : vt)
-        cout << t << ' ';
-    cout << "}";
+        os << t << ' ';
+    os << "}";
     return os;
 }
 void test_f() {
