@@ -74,6 +74,6 @@ void test_dotprod() {
 
 int main() {
     test_f();
-
+    test_dotprod();
     return 0;
 }
