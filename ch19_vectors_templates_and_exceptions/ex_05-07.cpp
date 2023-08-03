@@ -45,7 +45,6 @@ istream& operator>>(istream& is, Int& i) {
         is.clear();
     return is;
 }
-
 void test_int() {
     // default construction
     cout << "Default construction:    " << Int() << '\n';
@@ -64,6 +63,64 @@ void test_int() {
     cout << "i1 * i2: " << i1 * i2 << '\n';
     // division
     cout << "i1 / i2: " << i1 / i2 << '\n';
+}
+
+// 6.
+// I want to try out concepts here!
+/*
+Link save:
+
+concepts:
+- https://stackoverflow.com/questions/14294267/class-template-for-numeric-types
+- https://stackoverflow.com/questions/70301363/c-how-to-enforce-the-templated-type-to-implement-a-certain-operators
+    - https://stackoverflow.com/questions/54200988/why-do-we-require-requires-requires
+
+- https://en.cppreference.com/w/cpp/language/constraints
+- https://en.cppreference.com/w/cpp/concepts
+- https://en.cppreference.com/w/cpp/header/type_traits
+    - https://en.cppreference.com/w/cpp/types/is_arithmetic
+
+upgrading gcc:
+- https://azrael.digipen.edu/~mmead/www/mg/update-compilers/index.html
+- https://forums.linuxmint.com/viewtopic.php?t=275611&sid=6ab575ef3ad14b36b82d95dd52f229b9&start=20
+
+current stuff installed on my system:
+$ which gcc
+/usr/bin/gcc
+
+$ which g++
+/usr/bin/g++
+
+$ g[cc, ++] --version
+gcc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0
+g++ (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0
+*/
+template<typename T>
+class Number {
+private:
+    T val;
+public:
+    Number() : val {T(0)} {} // default constructor - initialize with zero!
+    Number(T t) : val {t} {} // constructor with arg
+    T get() const { return val; }
+    void set(T newval) { val = newval; }
+    Number<T>& operator=(const Number<T>& other);
+};
+
+template<typename T> Number<T>& Number<T>::operator=(const Number<T>& other) {
+    if (this == &other)
+        return *this;
+    this->set( other.get() );
+    return *this;
+}
+template<typename T> Number<T> operator+(const Number<T>& n1, const Number<T>& n2) { return Number<T>(n1.get() + n2.get()); }
+template<typename T> Number<T> operator-(const Number<T>& n1, const Number<T>& n2) { return Number<T>(n1.get() - n2.get()); }
+template<typename T> Number<T> operator*(const Number<T>& n1, const Number<T>& n2) { return Number<T>(n1.get() * n2.get()); }
+template<typename T> Number<T> operator/(const Number<T>& n1, const Number<T>& n2) { return Number<T>(n1.get() / n2.get()); } // not checking for /0
+
+// still need << and >> operators
+void test_number() {
+
 }
 
 int main() {
