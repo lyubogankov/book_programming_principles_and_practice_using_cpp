@@ -7,8 +7,12 @@
 
 #include <algorithm>
 #include <iostream>
+#include <memory>
 #include <vector>
 
+#include "ex_02.h"
+
+using std::allocator;
 using std::cout;
 using std::min;
 using std::ostream;
@@ -26,7 +30,8 @@ template<typename T> void f(vector<T>& v1, const vector<T>& v2)
 }
 
 // 2.
-template<typename T, typename U> double dot_product(const vector<T>& vt, const vector<U>& vu)
+template<typename T, typename U>
+double dot_product(const vector<T, allocator<T>>& vt, const vector<U, allocator<U>>& vu)
 // sum(vt[i] * vu[i])
 // I would like to be able to ensure, via concept, that types T and U can be multiplied.
 {

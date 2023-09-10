@@ -9,8 +9,17 @@
 7. Try your solution to exercise 2 with some Numbers.
 */
 
+#include <cmath>  // for fmod (#6)
 #include <iostream>
-#include <cmath>  // for fmod
+
+// #7
+#include <vector>
+#include <memory>
+
+// I tried including functionality from ex02, but it didn't work :(
+// I was probably not using the compiler correctly?
+// #include "ex_02.h"  // for #7
+
 using namespace std;
 
 // 5.
@@ -114,11 +123,30 @@ template<typename T> Number<T>& Number<T>::operator=(const Number<T>& other) {
     this->set( other.get() );
     return *this;
 }
+
+// // This block of arithmetic operator overloads only works between Number<T> and Number<U>, not raw ints / doubles, etc.  That's a pain.
 template<typename T, typename U> Number<T> operator+(const Number<T>& n1, const Number<U>& n2) { return Number<T>(n1.get() + n2.get()); }
 template<typename T, typename U> Number<T> operator-(const Number<T>& n1, const Number<U>& n2) { return Number<T>(n1.get() - n2.get()); }
 template<typename T, typename U> Number<T> operator*(const Number<T>& n1, const Number<U>& n2) { return Number<T>(n1.get() * n2.get()); }
 template<typename T, typename U> Number<T> operator/(const Number<T>& n1, const Number<U>& n2) { return Number<T>(n1.get() / n2.get()); } // not checking for /0
 template<typename T, typename U> Number<T> operator%(const Number<T>& n1, const Number<U>& n2) { return Number<T>(fmod(n1.get(), n2.get())); } // not checking for /0
+
+// // This block of arithmetic operator overloads should account for Number<> and any other numeric type!
+template<typename T, typename U> Number<T> operator+(const Number<T>& n1, const U& n2) { return Number<T>(n1.get() + n2); }
+template<typename T, typename U>         T operator+(const T& n1, const Number<U>& n2) { return         T(n1 + n2.get()); }
+
+template<typename T, typename U> Number<T> operator-(const Number<T>& n1, const U& n2) { return Number<T>(n1.get() - n2); }
+template<typename T, typename U>         T operator-(const T& n1, const Number<U>& n2) { return         T(n1 - n2.get()); }
+
+template<typename T, typename U> Number<T> operator*(const Number<T>& n1, const U& n2) { return Number<T>(n1.get() / n2); }
+template<typename T, typename U>         T operator*(const T& n1, const Number<U>& n2) { return         T(n1 / n2.get()); }
+
+template<typename T, typename U> Number<T> operator/(const Number<T>& n1, const U& n2) { return Number<T>(n1.get() / n2); }
+template<typename T, typename U>         T operator/(const T& n1, const Number<U>& n2) { return         T(n1 / n2.get()); }
+
+template<typename T, typename U> Number<T> operator%(const Number<T>& n1, const U& n2) { return Number<T>(fmod(n1.get(), n2)); }
+template<typename T, typename U>         T operator%(const T& n1, const Number<U>& n2) { return         T(fmod(n1, n2.get())); }
+
 template<typename T>
 ostream& operator<<(ostream& os, const Number<T>& n) {
     os << n.get();
@@ -168,8 +196,39 @@ void test_number() {
     number_test_suite(d, i, 10.0);
 }
 
+// 7.
+template<typename T, typename U>
+double dot_product(const vector<T>& vt, const vector<U>& vu)
+// sum(vt[i] * vu[i])
+// I would like to be able to ensure, via concept, that types T and U can be multiplied.
+{
+    if(vt.size() != vu.size())
+        throw runtime_error("vt.size() != vu.size()");
+
+    double dotprod;
+    for(int i=0; i<vt.size(); ++i)
+        dotprod = dotprod + (vt[i]*vu[i]); // haven't defined +=
+
+    return dotprod;
+}
+
+void test_dotprod_w_numbers() {
+    vector<Number<int>> vi {1, 2, 3};
+    vector<Number<double>> vd {10.2, 0.0, -2.7};
+
+    cout << "printing vi:\n";
+    for (auto element : vi) cout << "    " << element << '\n';
+
+    cout << "printing vd:\n";
+    for (auto element : vd) cout << "    " << element << '\n';
+    
+    cout << "dot(vi, vd) = " << dot_product(vi, vd) << '\n';
+    cout << "dot(vd, vi) = " << dot_product(vd, vi) << '\n';
+}
+
 int main() {
-    // test_int();
-    test_number();
+    // test_int(); // 5.
+    // test_number(); // 6.
+    test_dotprod_w_numbers(); // 7.
     return 0;
 }
