@@ -10,6 +10,7 @@
 */
 
 #include <iostream>
+#include <cmath>  // for fmod
 using namespace std;
 
 // 5.
@@ -113,17 +114,62 @@ template<typename T> Number<T>& Number<T>::operator=(const Number<T>& other) {
     this->set( other.get() );
     return *this;
 }
-template<typename T> Number<T> operator+(const Number<T>& n1, const Number<T>& n2) { return Number<T>(n1.get() + n2.get()); }
-template<typename T> Number<T> operator-(const Number<T>& n1, const Number<T>& n2) { return Number<T>(n1.get() - n2.get()); }
-template<typename T> Number<T> operator*(const Number<T>& n1, const Number<T>& n2) { return Number<T>(n1.get() * n2.get()); }
-template<typename T> Number<T> operator/(const Number<T>& n1, const Number<T>& n2) { return Number<T>(n1.get() / n2.get()); } // not checking for /0
+template<typename T, typename U> Number<T> operator+(const Number<T>& n1, const Number<U>& n2) { return Number<T>(n1.get() + n2.get()); }
+template<typename T, typename U> Number<T> operator-(const Number<T>& n1, const Number<U>& n2) { return Number<T>(n1.get() - n2.get()); }
+template<typename T, typename U> Number<T> operator*(const Number<T>& n1, const Number<U>& n2) { return Number<T>(n1.get() * n2.get()); }
+template<typename T, typename U> Number<T> operator/(const Number<T>& n1, const Number<U>& n2) { return Number<T>(n1.get() / n2.get()); } // not checking for /0
+template<typename T, typename U> Number<T> operator%(const Number<T>& n1, const Number<U>& n2) { return Number<T>(fmod(n1.get(), n2.get())); } // not checking for /0
+template<typename T>
+ostream& operator<<(ostream& os, const Number<T>& n) {
+    os << n.get();
+    return os;
+}
+template<typename T>
+istream& operator>>(istream& is, Number<T>& n) {
+    T newval;
+    if (is >> newval)
+        n.set(newval);
+    else
+        is.clear();
+    return is;
+}
 
-// still need << and >> operators
+template<typename T, typename U>
+void number_test_suite(Number<T> nt, Number<U> nu, T default_t) {
+    cout << "----------------------------------------\n";
+    cout << "nt = " << nt << "  nu = " << nu << "\n\n";
+    // construction
+    Number<T> a {};
+    cout << "Default construction yields: " << a << '\n';
+    Number<T> b {default_t};
+    cout << "Number<T> b {" << default_t << "} yields:   " << b << "\n\n";
+    // assignment
+    a = nt;
+    cout << "Assignment: new a=" << a << "\n\n";
+    // arithmetic
+    cout << "Number<T> + Number<U> = " << nt + nu << '\n';
+    cout << "Number<T> - Number<U> = " << nt - nu << '\n';
+    cout << "Number<T> * Number<U> = " << nt * nu << '\n';
+    cout << "Number<T> / Number<U> = " << nt / nu << '\n';
+    cout << "Number<T> % Number<U> = " << nt % nu << "\n\n";
+}
+
 void test_number() {
-
+    // 1. T = int, U = int
+    Number<int> x = 5;
+    Number<int> y = 7;
+    number_test_suite(x, y, 3);
+    // int, double:
+    Number<int> i = 5;
+    Number<double> d = 10.2;
+    // 2. T = int, U = double
+    number_test_suite(i, d, 4);
+    // 3. T = double, U = int
+    number_test_suite(d, i, 10.0);
 }
 
 int main() {
-    test_int();
+    // test_int();
+    test_number();
     return 0;
 }
